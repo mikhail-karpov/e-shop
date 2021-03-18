@@ -1,0 +1,11 @@
+serverr:
+  port: 8080
+
+zuul:
+  ignoredServices: '*'
+
+  routes:
+    products:
+      path: /products/**
+      stripPrefix: false
+      service-id: product-service

@@ -1,0 +1,37 @@
+version: '3.7'
+
+services:
+
+  start-dependencies:
+    image: dadarek/wait-for-dependencies
+    depends_on:
+      - config
+    command: config:8888
+
+  config:
+    build: ./config
+    restart: always
+    ports:
+    - 8888:8888
+
+  discovery-service:
+    build: ./discovery-service
+    depends_on:
+      - config
+    restart: always
+    ports:
+    - 8761:8761
+
+  product-service:
+    build: ./product-service
+    depends_on:
+      - config
+    restart: always
+
+  gateway:
+    build: ./gateway
+    depends_on:
+      - config
+    restart: always
+    ports:
+      - 8080:8080
