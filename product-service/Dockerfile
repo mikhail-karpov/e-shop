@@ -5,6 +5,6 @@ WORKDIR "/app"
 
 COPY ./target/product-service.jar .
 
-CMD ["java", "-jar", "/app/product-service.jar"]
+ENV JAVA_OPTS=""
 
-EXPOSE 8081
+ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -Djava.security.egd=file:/dev/./urandom -jar /app/product-service.jar"]

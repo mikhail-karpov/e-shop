@@ -7,8 +7,7 @@ services:
     depends_on:
       - config
       - product-service-db
-      - discovery-service
-    command: config:8888 product-service-db:5432 discovery-service:8761
+    command: config:8888 product-service-db:5432
 
   config:
     build: ./config
@@ -21,6 +20,9 @@ services:
     depends_on:
       - config
     restart: always
+    environment:
+      - JAVA_OPTS=
+        -DCONFIG=http://config:8888
     ports:
     - 8761:8761
 
@@ -29,7 +31,10 @@ services:
     depends_on:
       - config
       - product-service-db
-    restart: always
+    restart: on-failure
+    environment:
+      - JAVA_OPTS=
+        -DCONFIG=http://config:8888
 
   product-service-db:
     image: "postgres:12-alpine"
@@ -39,13 +44,15 @@ services:
       - POSTGRES_USER=product_service
       - POSTGRES_PASSWORD=password
     ports:
-      - 5433:5432
+      - 5432:5432
 
   gateway:
     build: ./gateway
     depends_on:
       - config
-      - discovery-service
     restart: always
+    environment:
+      - JAVA_OPTS=
+        -DCONFIG=http://config:8888
     ports:
       - 8080:8080
