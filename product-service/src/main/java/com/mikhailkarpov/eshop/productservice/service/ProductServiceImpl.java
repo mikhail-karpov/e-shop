@@ -8,8 +8,11 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import javax.validation.Valid;
 
 @Slf4j
 @Service
@@ -20,7 +23,7 @@ public class ProductServiceImpl implements ProductService {
     private final ProductRepository productRepository;
 
     @Override
-    public Product create(ProductRequest request) {
+    public Product create(@Valid ProductRequest request) {
 
         Product product = new Product();
         product.setCode(request.getCode());
@@ -44,9 +47,9 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public Page<Product> findAll(Pageable pageable) {
+    public Page<Product> findAll(Specification<Product> specification, Pageable pageable) {
 
-        return productRepository.findAll(pageable);
+        return productRepository.findAll(specification, pageable);
     }
 
     @Override
@@ -59,7 +62,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public Product update(String code, ProductRequest update) {
+    public Product update(String code, @Valid ProductRequest update) {
 
         Product product = findByCode(code);
         product.setTitle(update.getTitle());

@@ -1,5 +1,6 @@
 package com.mikhailkarpov.eshop.productservice.service;
 
+import com.mikhailkarpov.eshop.productservice.exception.CategoryNotEmptyException;
 import com.mikhailkarpov.eshop.productservice.exception.ResourceNotFoundException;
 import com.mikhailkarpov.eshop.productservice.persistence.entity.Category;
 import com.mikhailkarpov.eshop.productservice.persistence.entity.Product;
@@ -11,6 +12,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.validation.Valid;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -24,7 +26,7 @@ public class CategoryServiceImpl implements CategoryService {
     private final ProductRepository productRepository;
 
     @Override
-    public Category create(CategoryRequest request) {
+    public Category create(@Valid CategoryRequest request) {
 
         Category category = new Category();
         category.setTitle(request.getTitle());
@@ -37,7 +39,7 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public Category createSubcategory(Long parentId, CategoryRequest request) {
+    public Category createSubcategory(Long parentId, @Valid CategoryRequest request) {
 
         Category parent = findById(parentId);
         Category subcategory = parent.createSubcategory(request.getTitle(), request.getDescription());
@@ -51,8 +53,21 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public void delete(Long id) {
 
-        //todo check subcategories and products
+        delete(id, false);
+    }
+
+    @Override
+    public void delete(Long id, Boolean forced) {
+
         Category category = findById(id);
+
+        if (!forced && (categoryRepository.countByParentId(id) > 0 || productRepository.countByCategoryId(id) > 0)) {
+            String message = String.format("Category with id=%d not empty", id);
+            throw new CategoryNotEmptyException(message);
+        }
+
+        categoryRepository.delete(category);
+        log.info("Deleting {}", category);
     }
 
     @Override

@@ -13,6 +13,8 @@ public interface CategoryService {
 
     void delete(Long id);
 
+    void delete(Long id, Boolean forced);
+
     Category findById(Long id);
 
     List<Category> findParentCategories();
@@ -24,4 +26,5 @@ public interface CategoryService {
     void addProduct(Long id, String productCode);
 
     void removeProduct(Long id, String productCode);
+
 }

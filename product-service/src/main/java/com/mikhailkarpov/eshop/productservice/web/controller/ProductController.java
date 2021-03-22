@@ -1,12 +1,14 @@
 package com.mikhailkarpov.eshop.productservice.web.controller;
 
 import com.mikhailkarpov.eshop.productservice.persistence.entity.Product;
+import com.mikhailkarpov.eshop.productservice.persistence.specification.ProductSpecification;
 import com.mikhailkarpov.eshop.productservice.service.ProductService;
 import com.mikhailkarpov.eshop.productservice.web.dto.PagedResult;
 import com.mikhailkarpov.eshop.productservice.web.dto.ProductRequest;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,7 +16,6 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.validation.Valid;
 import java.net.URI;
-import java.util.List;
 import java.util.Optional;
 
 @RestController
@@ -25,19 +26,17 @@ public class ProductController {
     private final ProductService productService;
 
     @GetMapping
-    public PagedResult<Product> findProducts(@RequestParam(value = "name") String name,
-                                             @RequestParam(value = "code") List<String> codes,
-                                             @RequestParam(value = "category") Long categoryId,
-                                             @RequestParam(value = "page") Optional<Integer> page,
-                                             @RequestParam(value = "limit") Optional<Integer> limit) {
+    public PagedResult<Product> findProducts(@RequestParam(value = "title") Optional<String> title,
+                                             @RequestParam(value = "category") Optional<Long> categoryId,
+                                             Pageable pageable) {
 
-        Pageable pageable = buildPageable(page, limit);
-        Page<Product> products = productService.findAll(pageable);
+        Specification<Product> productSpec = buildSpecification(title, categoryId);
+        Page<Product> products = productService.findAll(productSpec, pageable);
 
         return new PagedResult<>(products);
     }
 
-    @GetMapping("/{code")
+    @GetMapping("/{code}")
     public Product findProductByCode(@PathVariable String code) {
 
         return productService.findByCode(code);
@@ -65,7 +64,15 @@ public class ProductController {
         productService.delete(code);
     }
 
-    private Pageable buildPageable(Optional<Integer> page, Optional<Integer> limit) {
-        return null;
+    private Specification<Product> buildSpecification(Optional<String> title, Optional<Long> categoryId) {
+        Specification<Product> productSpec = ProductSpecification.titleLike("%");
+
+        if (title.isPresent()) {
+            productSpec = ProductSpecification.titleLike(title.get());
+        }
+        if (categoryId.isPresent()) {
+            productSpec = productSpec.and(ProductSpecification.categoryIdEqual(categoryId.get()));
+        }
+        return productSpec;
     }
 }

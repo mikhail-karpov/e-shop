@@ -57,9 +57,10 @@ public class CategoryController {
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    public void delete(@PathVariable Long id) {
+    public void delete(@PathVariable Long id,
+                       @RequestParam(required = false, name = "forced", defaultValue = "false") Boolean forced) {
 
-        categoryService.delete(id);
+        categoryService.delete(id, forced);
     }
 
     @GetMapping("/{id}/subcategories")

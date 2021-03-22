@@ -6,7 +6,7 @@ CREATE TABLE category(
 );
 
 CREATE TABLE product(
-    code VARCHAR(255) NOT NULL PRIMARY KEY,
+    code VARCHAR(255) NOT NULL PRIMARY KEY UNIQUE,
     title VARCHAR(255) NOT NULL,
     description VARCHAR(255) NOT NULL,
     price INT NOT NULL,
