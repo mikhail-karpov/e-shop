@@ -8,7 +8,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.Optional;
@@ -44,7 +43,7 @@ class CategoryServiceImplTest {
 
         when(categoryRepository.save(any(Category.class))).thenReturn(expectedCategory);
 
-        Category createdCategory = categoryService.create(request);
+        Category createdCategory = categoryService.createCategory(request);
 
         assertEquals(expectedCategory.getId(), createdCategory.getId());
         assertEquals(expectedCategory.getTitle(), createdCategory.getTitle());

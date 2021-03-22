@@ -7,7 +7,7 @@ import java.util.List;
 
 public interface CategoryService {
 
-    Category create(CategoryRequest request);
+    Category createCategory(CategoryRequest request);
 
     Category createSubcategory(Long parentId, CategoryRequest request);
 

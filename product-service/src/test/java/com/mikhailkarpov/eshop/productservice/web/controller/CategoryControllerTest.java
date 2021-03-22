@@ -82,7 +82,7 @@ class CategoryControllerTest {
         Category expected = new Category("category 1", "category 1 description");
         expected.setId(1L);
 
-        when(categoryService.create(any(CategoryRequest.class))).thenReturn(expected);
+        when(categoryService.createCategory(any(CategoryRequest.class))).thenReturn(expected);
 
         mockMvc.perform(post("/categories")
                 .contentType("application/json")
@@ -94,7 +94,7 @@ class CategoryControllerTest {
                 .andExpect(jsonPath("$.title").value("category 1"))
                 .andExpect(jsonPath("$.description").value("category 1 description"));
 
-        verify(categoryService).create(any(CategoryRequest.class));
+        verify(categoryService).createCategory(any(CategoryRequest.class));
         verifyNoMoreInteractions(categoryService);
     }
 
@@ -174,7 +174,7 @@ class CategoryControllerTest {
         Category category2 = new Category("category 2", "category 2 description");
         category2.setId(2L);
 
-        when(categoryService.findSubcategoriesByParentId(1L)).thenReturn(Arrays.asList(category1, category2));
+        when(categoryService.findSubcategoriesByParentId(1L)).thenReturn(Arrays.asList(category2, category1));
 
         mockMvc.perform(get("/categories/{id}/subcategories", 1)
                 .accept("application/json"))

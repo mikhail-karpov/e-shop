@@ -12,8 +12,6 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.validation.Valid;
-
 @Slf4j
 @Service
 @Transactional
@@ -23,7 +21,7 @@ public class ProductServiceImpl implements ProductService {
     private final ProductRepository productRepository;
 
     @Override
-    public Product create(@Valid ProductRequest request) {
+    public Product create(ProductRequest request) {
 
         Product product = new Product();
         product.setCode(request.getCode());
@@ -62,7 +60,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public Product update(String code, @Valid ProductRequest update) {
+    public Product update(String code, ProductRequest update) {
 
         Product product = findByCode(code);
         product.setTitle(update.getTitle());

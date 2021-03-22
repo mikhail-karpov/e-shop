@@ -26,7 +26,7 @@ public class CategoryServiceImpl implements CategoryService {
     private final ProductRepository productRepository;
 
     @Override
-    public Category create(@Valid CategoryRequest request) {
+    public Category createCategory(@Valid CategoryRequest request) {
 
         Category category = new Category();
         category.setTitle(request.getTitle());
