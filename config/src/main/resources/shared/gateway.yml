@@ -1,6 +1,3 @@
-serverr:
-  port: 8080
-
 zuul:
   ignoredServices: '*'
 
