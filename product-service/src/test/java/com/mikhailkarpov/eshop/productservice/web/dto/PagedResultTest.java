@@ -37,13 +37,11 @@ class PagedResultTest {
                 "{\"code\":\"abc\"," +
                 "\"title\":\"product 1\"," +
                 "\"description\":\"product 1 description\"," +
-                "\"price\":1000,\"quantity\":12," +
-                "\"category\":null}," +
+                "\"price\":1000,\"quantity\":12}," +
                 "{\"code\":\"xyz\"," +
                 "\"title\":\"product 2\"," +
                 "\"description\":\"product 2 description\"," +
-                "\"price\":2000,\"quantity\":22," +
-                "\"category\":null}" +
+                "\"price\":2000,\"quantity\":22}" +
                 "]," +
                 "\"page\":9," +
                 "\"total_results\":20," +

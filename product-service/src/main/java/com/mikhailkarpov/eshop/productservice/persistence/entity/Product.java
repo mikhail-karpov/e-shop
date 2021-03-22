@@ -1,5 +1,6 @@
 package com.mikhailkarpov.eshop.productservice.persistence.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
@@ -28,6 +29,7 @@ public class Product {
 
     @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "category_fk")
+    @JsonIgnore
     private Category category;
 
     public Product(String code, String title, String description, Integer price, Integer quantity) {

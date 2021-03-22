@@ -23,6 +23,7 @@ services:
     environment:
       - JAVA_OPTS=
         -DCONFIG=http://config:8888
+        -Dspring.profiles.active=development
     ports:
     - 8761:8761
 
@@ -35,6 +36,7 @@ services:
     environment:
       - JAVA_OPTS=
         -DCONFIG=http://config:8888
+        -Dspring.profiles.active=development
 
   product-service-db:
     image: "postgres:12-alpine"
@@ -50,9 +52,11 @@ services:
     build: ./gateway
     depends_on:
       - config
+      - discovery-service
     restart: always
     environment:
       - JAVA_OPTS=
         -DCONFIG=http://config:8888
+        -Dspring.profiles.active=development
     ports:
       - 8080:8080
