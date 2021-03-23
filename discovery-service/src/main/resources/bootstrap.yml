@@ -6,3 +6,5 @@ spring:
     config:
       uri: ${CONFIG:http://localhost:8888}
       fail-fast: true
+      username: config
+      password: ${CONFIG_PASSWORD}
