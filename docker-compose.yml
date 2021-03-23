@@ -12,6 +12,8 @@ services:
   config:
     build: ./config
     restart: always
+    environment:
+      CONFIG_PASSWORD: $CONFIG_PASSWORD
     ports:
     - 8888:8888
 
@@ -24,6 +26,7 @@ services:
       - JAVA_OPTS=
         -DCONFIG=http://config:8888
         -Dspring.profiles.active=development
+        -DCONFIG_PASSWORD=$CONFIG_PASSWORD
     ports:
     - 8761:8761
 
@@ -37,6 +40,7 @@ services:
       - JAVA_OPTS=
         -DCONFIG=http://config:8888
         -Dspring.profiles.active=development
+        -DCONFIG_PASSWORD=$CONFIG_PASSWORD
 
   product-service-db:
     image: "postgres:12-alpine"
@@ -58,5 +62,6 @@ services:
       - JAVA_OPTS=
         -DCONFIG=http://config:8888
         -Dspring.profiles.active=development
+        -DCONFIG_PASSWORD=$CONFIG_PASSWORD
     ports:
       - 8080:8080
