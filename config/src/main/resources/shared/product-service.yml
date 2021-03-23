@@ -1,11 +1,8 @@
-server:
-  port: 8081
-
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/product_service
-    username: postgres
-    password: postgres
+    url: jdbc:postgresql://product-service-db:5432/product_service
+    username: product_service
+    password: password
   flyway:
     enabled: true
   jpa:

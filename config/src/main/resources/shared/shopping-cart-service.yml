@@ -1,0 +1,13 @@
+app:
+  service:
+    shopping-cart:
+      cookie:
+        ageHours: 5040
+
+feign:
+  hystrix:
+    enabled: true
+
+logging:
+  level:
+    com.mikhailkarpov.eshop.shoppingcartservice.client.ProductServiceClient: DEBUG

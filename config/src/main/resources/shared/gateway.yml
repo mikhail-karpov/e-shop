@@ -2,7 +2,18 @@ zuul:
   ignoredServices: '*'
 
   routes:
+    categories:
+      path: /categories/**
+      stripPrefix: false
+      service-id: product-service
+
     products:
       path: /products/**
       stripPrefix: false
       service-id: product-service
+
+    shopping-cart:
+      path: /shopping-cart/**
+      stripPrefix: false
+      service-id: shopping-cart-service
+      sensitiveHeaders:

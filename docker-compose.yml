@@ -13,7 +13,7 @@ services:
     build: ./config
     restart: always
     environment:
-      CONFIG_PASSWORD: $CONFIG_PASSWORD
+      CONFIG_PASSWORD: "${CONFIG_PASSWORD}"
     ports:
     - 8888:8888
 
@@ -24,11 +24,21 @@ services:
     restart: always
     environment:
       - JAVA_OPTS=
-        -DCONFIG=http://config:8888
-        -Dspring.profiles.active=development
         -DCONFIG_PASSWORD=$CONFIG_PASSWORD
     ports:
     - 8761:8761
+
+  gateway:
+    build: ./gateway
+    depends_on:
+      - config
+      - discovery-service
+    restart: always
+    environment:
+      - JAVA_OPTS=
+        -DCONFIG_PASSWORD=$CONFIG_PASSWORD
+    ports:
+      - 8080:8080
 
   product-service:
     build: ./product-service
@@ -38,8 +48,6 @@ services:
     restart: on-failure
     environment:
       - JAVA_OPTS=
-        -DCONFIG=http://config:8888
-        -Dspring.profiles.active=development
         -DCONFIG_PASSWORD=$CONFIG_PASSWORD
 
   product-service-db:
@@ -50,18 +58,13 @@ services:
       - POSTGRES_USER=product_service
       - POSTGRES_PASSWORD=password
     ports:
-      - 5432:5432
+    - 5432:5432
 
-  gateway:
-    build: ./gateway
+  shopping-cart-service:
+    build: ./shopping-cart-service
     depends_on:
       - config
-      - discovery-service
-    restart: always
+    restart: on-failure
     environment:
       - JAVA_OPTS=
-        -DCONFIG=http://config:8888
-        -Dspring.profiles.active=development
         -DCONFIG_PASSWORD=$CONFIG_PASSWORD
-    ports:
-      - 8080:8080
