@@ -1,5 +1,6 @@
 package com.mikhailkarpov.eshop.productservice.service;
 
+import com.mikhailkarpov.eshop.productservice.exception.DuplicateProductCodeException;
 import com.mikhailkarpov.eshop.productservice.exception.ResourceNotFoundException;
 import com.mikhailkarpov.eshop.productservice.persistence.entity.Product;
 import com.mikhailkarpov.eshop.productservice.persistence.repository.ProductRepository;
@@ -23,8 +24,14 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public Product create(ProductRequest request) {
 
+        String code = request.getCode();
+        if (productRepository.existsById(code)) {
+            String message = String.format("Product with code=\"%s\" already exists", code);
+            throw new DuplicateProductCodeException(message);
+        }
+
         Product product = new Product();
-        product.setCode(request.getCode());
+        product.setCode(code);
         product.setTitle(request.getTitle());
         product.setDescription(request.getDescription());
         product.setPrice(request.getPrice());
