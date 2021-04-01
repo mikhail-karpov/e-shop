@@ -7,7 +7,8 @@ services:
     depends_on:
       - config
       - product-service-db
-    command: config:8888 product-service-db:5432
+      - redis
+    command: config:8888 product-service-db:5432 redis:6379
 
   config:
     build: ./config
@@ -64,7 +65,13 @@ services:
     build: ./shopping-cart-service
     depends_on:
       - config
+      - redis
     restart: on-failure
     environment:
       - JAVA_OPTS=
         -DCONFIG_PASSWORD=$CONFIG_PASSWORD
+
+  redis:
+    image: redis:alpine
+    ports:
+    - 6379:6379

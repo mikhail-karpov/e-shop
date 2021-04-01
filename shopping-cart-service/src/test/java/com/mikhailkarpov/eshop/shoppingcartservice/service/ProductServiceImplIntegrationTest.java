@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
+import com.mikhailkarpov.eshop.shoppingcartservice.AbstractIntegrationTest;
 import com.mikhailkarpov.eshop.shoppingcartservice.client.ProductServiceClient;
 import com.mikhailkarpov.eshop.shoppingcartservice.config.ProductServiceMockServerConfig;
 import com.mikhailkarpov.eshop.shoppingcartservice.web.dto.Product;
@@ -23,7 +24,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest(properties = "feign.hystrix.enabled=true")
 @Import({ProductServiceMockServerConfig.class})
-class ProductServiceImplIntegrationTest {
+class ProductServiceImplIntegrationTest extends AbstractIntegrationTest {
 
     @Autowired
     private WireMockServer productServer;
