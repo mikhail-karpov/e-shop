@@ -45,6 +45,7 @@ services:
     build: ./product-service
     depends_on:
       - config
+      - redis
       - product-service-db
     restart: on-failure
     environment:
@@ -65,7 +66,7 @@ services:
     build: ./shopping-cart-service
     depends_on:
       - config
-      - redis
+      - discovery-service
     restart: on-failure
     environment:
       - JAVA_OPTS=

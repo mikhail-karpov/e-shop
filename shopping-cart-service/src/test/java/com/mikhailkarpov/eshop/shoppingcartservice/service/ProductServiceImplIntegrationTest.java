@@ -4,16 +4,13 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.WireMockServer;
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder;
-import com.mikhailkarpov.eshop.shoppingcartservice.AbstractIntegrationTest;
 import com.mikhailkarpov.eshop.shoppingcartservice.client.ProductServiceClient;
 import com.mikhailkarpov.eshop.shoppingcartservice.config.ProductServiceMockServerConfig;
 import com.mikhailkarpov.eshop.shoppingcartservice.web.dto.Product;
 import com.netflix.hystrix.exception.HystrixBadRequestException;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.cache.CacheManager;
 import org.springframework.context.annotation.Import;
 
 import java.util.Optional;
@@ -24,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest(properties = "feign.hystrix.enabled=true")
 @Import({ProductServiceMockServerConfig.class})
-class ProductServiceImplIntegrationTest extends AbstractIntegrationTest {
+class ProductServiceImplIntegrationTest {
 
     @Autowired
     private WireMockServer productServer;
@@ -36,15 +33,7 @@ class ProductServiceImplIntegrationTest extends AbstractIntegrationTest {
     private ProductService productService;
 
     @Autowired
-    private CacheManager cacheManager;
-
-    @Autowired
     private ObjectMapper objectMapper;
-
-    @BeforeEach
-    void clearCache() {
-        cacheManager.getCache("product").invalidate();
-    }
 
     @Test
     void givenProductServerOk_whenGetProductByCode_thenPresent() throws JsonProcessingException {
@@ -60,12 +49,10 @@ class ProductServiceImplIntegrationTest extends AbstractIntegrationTest {
 
         //when
         Optional<Product> product = productService.getProductByCode("abc");
-        Object cached = cacheManager.getCache("product").get("abc").get();
 
         //then
         assertTrue(product.isPresent());
         assertThat(abc).usingRecursiveComparison().isEqualTo(product.get());
-        assertThat(cached).usingRecursiveComparison().isEqualTo(product.get());
     }
 
     @Test
@@ -80,7 +67,6 @@ class ProductServiceImplIntegrationTest extends AbstractIntegrationTest {
 
         //then
         assertFalse(product.isPresent());
-        assertNull(cacheManager.getCache("product").get("timeout"));
     }
 
     @Test
@@ -95,7 +81,6 @@ class ProductServiceImplIntegrationTest extends AbstractIntegrationTest {
 
         //then
         assertFalse(product.isPresent());
-        assertNull(cacheManager.getCache("product").get("not-found"));
     }
 
     @Test
@@ -108,6 +93,5 @@ class ProductServiceImplIntegrationTest extends AbstractIntegrationTest {
         //then
         assertThrows(HystrixBadRequestException.class,
                 () -> productServiceClient.getProductByCode("forbidden"));
-        assertNull(cacheManager.getCache("product").get("forbidden"));
     }
 }

@@ -9,3 +9,10 @@ spring:
     hibernate:
       ddl-auto: validate
     show-sql: true
+
+  cache:
+    type: redis
+
+  redis:
+    host: redis
+    port: 6379

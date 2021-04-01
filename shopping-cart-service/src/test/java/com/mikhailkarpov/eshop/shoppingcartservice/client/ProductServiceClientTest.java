@@ -17,7 +17,7 @@ import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @SpringBootTest(properties = "feign.hystrix.enabled=true")
-@Import(ProductServiceMockServerConfig.class)
+@Import({ProductServiceMockServerConfig.class})
 class ProductServiceClientTest {
 
     @Autowired
