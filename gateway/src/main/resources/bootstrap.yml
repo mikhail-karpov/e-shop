@@ -4,7 +4,7 @@ spring:
 
   cloud:
     config:
-      uri: http://config:8888
+      uri: ${CONFIG_URI:http://localhost:8888}
       fail-fast: true
       username: config
       password: ${CONFIG_PASSWORD}
