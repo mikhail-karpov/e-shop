@@ -18,6 +18,12 @@ public class CacheableProductService extends ProductServiceImpl {
     }
 
     @Override
+    @CachePut(cacheNames = {"product"}, key = "#root.args[0].code")
+    public Product create(ProductRequest request) {
+        return super.create(request);
+    }
+
+    @Override
     @CacheEvict(cacheNames = {"product"}, key = "#code")
     public void delete(String code) {
         super.delete(code);
