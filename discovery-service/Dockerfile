@@ -5,6 +5,6 @@ WORKDIR "/app"
 
 COPY ./target/discovery-service.jar .
 
-ENV JAVA_OPTS=""
+CMD ["java", "-jar", "/app/discovery-service.jar"]
 
-ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -Djava.security.egd=file:/dev/./urandom -jar /app/discovery-service.jar"]
+EXPOSE 8761

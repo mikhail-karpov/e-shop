@@ -12,9 +12,10 @@ services:
 
   config:
     build: ./config
-    restart: always
+    restart: on-failure
     environment:
-      CONFIG_PASSWORD: "${CONFIG_PASSWORD}"
+      - CONFIG_PASSWORD=${CONFIG_PASSWORD}
+#      CONFIG_PASSWORD: "${CONFIG_PASSWORD}"
     ports:
     - 8888:8888
 
@@ -22,10 +23,11 @@ services:
     build: ./discovery-service
     depends_on:
       - config
-    restart: always
+    restart: on-failure
     environment:
-      - JAVA_OPTS=
-        -DCONFIG_PASSWORD=$CONFIG_PASSWORD
+      - CONFIG_URI=http://config:8888
+      - CONFIG_PASSWORD=${CONFIG_PASSWORD}
+      - SPRING_PROFILES_ACTIVE=dev
     ports:
     - 8761:8761
 
@@ -34,10 +36,11 @@ services:
     depends_on:
       - config
       - discovery-service
-    restart: always
+    restart: on-failure
     environment:
-      - JAVA_OPTS=
-        -DCONFIG_PASSWORD=$CONFIG_PASSWORD
+      - CONFIG_URI=http://config:8888
+      - CONFIG_PASSWORD=${CONFIG_PASSWORD}
+      - SPRING_PROFILES_ACTIVE=dev
     ports:
       - 8080:8080
 
@@ -46,10 +49,13 @@ services:
     depends_on:
       - config
       - product-service-db
+      - redis
     restart: on-failure
     environment:
-      - JAVA_OPTS=
-        -DCONFIG_PASSWORD=$CONFIG_PASSWORD
+      - CONFIG_URI=http://config:8888
+      - CONFIG_PASSWORD=${CONFIG_PASSWORD}
+      - SPRING_PROFILES_ACTIVE=dev
+      - PRODUCT_DB_PASSWORD=${PRODUCT_DB_PASSWORD}
 
   product-service-db:
     image: "postgres:12-alpine"
@@ -57,7 +63,7 @@ services:
     environment:
       - POSTGRES_DB=product_service
       - POSTGRES_USER=product_service
-      - POSTGRES_PASSWORD=password
+      - POSTGRES_PASSWORD=${PRODUCT_DB_PASSWORD}
     ports:
     - 5432:5432
 
@@ -65,11 +71,12 @@ services:
     build: ./shopping-cart-service
     depends_on:
       - config
-      - redis
+      - discovery-service
     restart: on-failure
     environment:
-      - JAVA_OPTS=
-        -DCONFIG_PASSWORD=$CONFIG_PASSWORD
+      - CONFIG_URI=http://config:8888
+      - CONFIG_PASSWORD=${CONFIG_PASSWORD}
+      - SPRING_PROFILES_ACTIVE=dev
 
   redis:
     image: redis:alpine

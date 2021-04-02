@@ -5,8 +5,6 @@ WORKDIR "/app"
 
 COPY ./target/shopping-cart-service.jar .
 
-ENV JAVA_OPTS=""
+CMD ["java", "-jar", "/app/shopping-cart-service.jar"]
 
-ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -Djava.security.egd=file:/dev/./urandom -jar /app/shopping-cart-service.jar"]
-
-EXPOSE 8080
+EXPOSE 8082

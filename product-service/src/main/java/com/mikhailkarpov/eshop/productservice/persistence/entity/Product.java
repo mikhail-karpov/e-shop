@@ -5,12 +5,16 @@ import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
 
+import java.io.Serializable;
+
 import static javax.persistence.FetchType.LAZY;
 
 @Entity(name = "Product")
 @Table(name = "product")
 @NoArgsConstructor
-public class Product {
+public class Product implements Serializable {
+
+    private static final long serialVersionUID = 535196700385883110L;
 
     @Id
     private String code;
