@@ -17,3 +17,8 @@ zuul:
       stripPrefix: false
       service-id: shopping-cart-service
       sensitiveHeaders:
+
+    orders:
+      path: /orders/**
+      stripPrefix: false
+      service-id: order-service

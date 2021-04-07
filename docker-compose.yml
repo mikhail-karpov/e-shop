@@ -15,7 +15,6 @@ services:
     restart: on-failure
     environment:
       - CONFIG_PASSWORD=${CONFIG_PASSWORD}
-#      CONFIG_PASSWORD: "${CONFIG_PASSWORD}"
     ports:
     - 8888:8888
 
@@ -69,6 +68,17 @@ services:
 
   shopping-cart-service:
     build: ./shopping-cart-service
+    depends_on:
+      - config
+      - discovery-service
+    restart: on-failure
+    environment:
+      - CONFIG_URI=http://config:8888
+      - CONFIG_PASSWORD=${CONFIG_PASSWORD}
+      - SPRING_PROFILES_ACTIVE=dev
+
+  order-service:
+    build: ./order-service
     depends_on:
       - config
       - discovery-service
