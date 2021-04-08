@@ -13,9 +13,6 @@ import java.util.List;
 @Data
 public class CreateOrderRequest {
 
-    @NotBlank
-    private String customerId;
-
     @NotEmpty
     private List<@Valid Item> items;
 

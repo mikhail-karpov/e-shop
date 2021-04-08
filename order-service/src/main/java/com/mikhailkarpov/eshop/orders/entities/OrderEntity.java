@@ -12,7 +12,7 @@ import static javax.persistence.CascadeType.MERGE;
 import static javax.persistence.CascadeType.PERSIST;
 import static javax.persistence.FetchType.LAZY;
 
-@Entity(name = "Order")
+@Entity(name = "OrderEntity")
 @Table(name = "order")
 @NoArgsConstructor
 @Getter
@@ -25,14 +25,17 @@ public class OrderEntity {
     @Column(name = "customer_id", nullable = false)
     private String customerId;
 
-    @OneToOne(fetch = LAZY, cascade = {PERSIST, MERGE}, orphanRemoval = true, mappedBy = "order")
+    @OneToOne(fetch = LAZY, cascade = {PERSIST, MERGE}, mappedBy = "order")
     private AddressEntity shippingAddress;
 
-    @OneToOne(fetch = LAZY, cascade = {PERSIST, MERGE}, orphanRemoval = true, mappedBy = "order")
+    @OneToOne(fetch = LAZY, cascade = {PERSIST, MERGE}, mappedBy = "order")
     private AddressEntity billingAddress;
 
-    @OneToMany(fetch = LAZY, cascade = {PERSIST, MERGE}, orphanRemoval = true, mappedBy = "order")
+    @OneToMany(fetch = LAZY, cascade = {PERSIST, MERGE}, mappedBy = "order")
     private Set<OrderItemEntity> items = new HashSet<>();
+
+    @Embedded
+    private OrderStatus status;
 
     public void setShippingAddress(AddressEntity shippingAddress) {
         Assert.notNull(shippingAddress, "Address must be provided");
@@ -68,6 +71,7 @@ public class OrderEntity {
         return "OrderEntity{" +
                 "id=" + id +
                 ", customerId='" + customerId + '\'' +
+                ", status='" + status + '\'' +
                 '}';
     }
 }
