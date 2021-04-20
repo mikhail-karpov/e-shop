@@ -1,7 +1,8 @@
 package com.mikhailkarpov.eshop.orders.entities;
 
-import lombok.*;
-import org.springframework.util.Assert;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import javax.persistence.*;
 import java.util.UUID;
@@ -18,7 +19,7 @@ public class AddressEntity {
     private UUID id;
 
     @OneToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "order_fk", nullable = false, updatable = false)
+    @MapsId
     private OrderEntity order;
 
     @Column(name = "zip", nullable = false)
@@ -38,15 +39,6 @@ public class AddressEntity {
 
     @Column(name = "phone_number", nullable = false)
     private String phone;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "type", nullable = false)
-    private AddressType type;
-
-    void setOrder(OrderEntity order) {
-        Assert.notNull(order, "Order must be provided");
-        this.order = order;
-    }
 
     @Override
     public boolean equals(Object o) {
@@ -75,7 +67,6 @@ public class AddressEntity {
                 ", city='" + city + '\'' +
                 ", streetAddress='" + street + '\'' +
                 ", phoneNumber='" + phone + '\'' +
-                ", type=" + type +
                 '}';
     }
 }

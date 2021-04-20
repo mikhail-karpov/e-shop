@@ -2,9 +2,7 @@ package com.mikhailkarpov.eshop.orders.controllers;
 
 import com.mikhailkarpov.eshop.orders.dto.CreateOrderRequest;
 import com.mikhailkarpov.eshop.orders.dto.OrderDTO;
-import com.mikhailkarpov.eshop.orders.dto.ProductDTO;
 import com.mikhailkarpov.eshop.orders.services.OrderService;
-import com.mikhailkarpov.eshop.orders.services.ProductService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -22,8 +20,6 @@ import java.util.UUID;
 public class OrderController {
 
     private final OrderService orderService;
-
-    private final ProductService productService;
 
     @GetMapping("/orders")
     public List<OrderDTO> findAllOrders() {
@@ -48,12 +44,5 @@ public class OrderController {
 
         UUID uuid = UUID.fromString(orderId);
         return orderService.findOrderById(uuid);
-    }
-
-    @GetMapping("/orders/{id}/products")
-    public List<ProductDTO> getProductsByOrderId(@PathVariable("id") String orderId) {
-
-        UUID uuid = UUID.fromString(orderId);
-        return productService.findProductsByOrderId(uuid);
     }
 }

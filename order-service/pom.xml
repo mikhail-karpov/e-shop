@@ -41,6 +41,12 @@
 			<artifactId>h2</artifactId>
 		</dependency>
 
+		<!-- messaging -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-amqp</artifactId>
+		</dependency>
+
 		<!-- Devtools -->
 		<dependency>
 			<groupId>org.projectlombok</groupId>

@@ -17,8 +17,5 @@ public class OrderDTO {
     @JsonProperty(value = "shipping-address")
     private AddressDTO shippingAddress;
 
-    @JsonProperty(value = "billing-address")
-    private AddressDTO billingAddress;
-
     private OrderStatusDTO status;
 }

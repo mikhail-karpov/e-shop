@@ -1,5 +1,6 @@
 package com.mikhailkarpov.eshop.orders.entities;
 
+import lombok.AccessLevel;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -10,7 +11,7 @@ import javax.persistence.Enumerated;
 
 @Embeddable
 @Data
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED) // for JPA
 public class OrderStatus {
 
     @Column(name = "status_type", nullable = false)

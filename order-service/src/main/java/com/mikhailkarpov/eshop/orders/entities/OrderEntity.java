@@ -12,7 +12,7 @@ import static javax.persistence.CascadeType.MERGE;
 import static javax.persistence.CascadeType.PERSIST;
 import static javax.persistence.FetchType.LAZY;
 
-@Entity(name = "OrderEntity")
+@Entity(name = "Order")
 @Table(name = "order")
 @NoArgsConstructor
 @Getter
@@ -28,11 +28,8 @@ public class OrderEntity {
     @OneToOne(fetch = LAZY, cascade = {PERSIST, MERGE}, mappedBy = "order")
     private AddressEntity shippingAddress;
 
-    @OneToOne(fetch = LAZY, cascade = {PERSIST, MERGE}, mappedBy = "order")
-    private AddressEntity billingAddress;
-
     @OneToMany(fetch = LAZY, cascade = {PERSIST, MERGE}, mappedBy = "order")
-    private Set<OrderItemEntity> items = new HashSet<>();
+    private Set<ProductEntity> items = new HashSet<>();
 
     @Embedded
     private OrderStatus status;
@@ -41,12 +38,6 @@ public class OrderEntity {
         Assert.notNull(shippingAddress, "Address must be provided");
         this.shippingAddress = shippingAddress;
         this.shippingAddress.setOrder(this);
-    }
-
-    public void setBillingAddress(AddressEntity billingAddress) {
-        Assert.notNull(billingAddress, "Address must be provided");
-        this.billingAddress = billingAddress;
-        this.billingAddress.setOrder(this);
     }
 
     @Override

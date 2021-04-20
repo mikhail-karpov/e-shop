@@ -3,6 +3,7 @@ package com.mikhailkarpov.eshop.orders.services;
 import com.mikhailkarpov.eshop.orders.dto.AddressDTO;
 import com.mikhailkarpov.eshop.orders.dto.CreateOrderRequest;
 import com.mikhailkarpov.eshop.orders.dto.OrderDTO;
+import com.mikhailkarpov.eshop.orders.dto.OrderItem;
 import com.mikhailkarpov.eshop.orders.entities.AddressEntity;
 import com.mikhailkarpov.eshop.orders.entities.OrderEntity;
 import com.mikhailkarpov.eshop.orders.entities.OrderStatus;
@@ -15,7 +16,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.context.ApplicationEventPublisher;
 
 import java.util.Arrays;
 import java.util.List;
@@ -32,13 +32,13 @@ class OrderServiceImplTest {
     private OrderEntityRepository orderEntityRepository;
 
     @Mock
-    private ApplicationEventPublisher eventPublisher;
+    private ProductService productService;
 
     private OrderService orderService;
 
     @BeforeEach
-    void setOrderService() {
-        this.orderService = new OrderServiceImpl(eventPublisher, orderEntityRepository);
+    public void setOrderService() {
+        orderService = new OrderServiceImpl(orderEntityRepository, productService);
     }
 
     @Test
@@ -53,17 +53,16 @@ class OrderServiceImplTest {
         address.setStreet("Street");
         address.setPhone("phone");
 
-        CreateOrderRequest.Item firstItem = new CreateOrderRequest.Item();
+        OrderItem firstItem = new OrderItem();
         firstItem.setCode("abc");
         firstItem.setQuantity(2);
 
-        CreateOrderRequest.Item secondItem = new CreateOrderRequest.Item();
+        OrderItem secondItem = new OrderItem();
         secondItem.setCode("xyz");
         secondItem.setQuantity(3);
 
         CreateOrderRequest request = new CreateOrderRequest();
         request.setShippingAddress(address);
-        request.setBillingAddress(address);
         request.setItems(Arrays.asList(firstItem, secondItem));
 
         //when
@@ -72,8 +71,7 @@ class OrderServiceImplTest {
 
         //then
         verify(orderEntityRepository).save(any(OrderEntity.class));
-        verify(eventPublisher).publishEvent(new OrderPlacedEvent(orderId, "customer-id", request));
-        verifyNoMoreInteractions(orderEntityRepository, eventPublisher);
+        verifyNoMoreInteractions(orderEntityRepository, productService);
     }
 
     @Test
@@ -91,7 +89,7 @@ class OrderServiceImplTest {
         //then
         assertNotNull(orderDTO);
         verify(orderEntityRepository).findById(id);
-        verifyNoMoreInteractions(orderEntityRepository, eventPublisher);
+        verifyNoMoreInteractions(orderEntityRepository, productService);
     }
 
     @Test
@@ -103,7 +101,7 @@ class OrderServiceImplTest {
         //then
         assertThrows(OrderNotFoundException.class, () -> orderService.findOrderById(id));
         verify(orderEntityRepository).findById(id);
-        verifyNoMoreInteractions(orderEntityRepository, eventPublisher);
+        verifyNoMoreInteractions(orderEntityRepository, productService);
     }
 
     @Test
@@ -118,13 +116,12 @@ class OrderServiceImplTest {
         //then
         assertEquals(1, dtoList.size());
         verify(orderEntityRepository).findAll();
-        verifyNoMoreInteractions(orderEntityRepository, eventPublisher);
+        verifyNoMoreInteractions(orderEntityRepository, productService);
     }
 
     private OrderEntity getMockEntity() {
         OrderEntity mockEntity = mock(OrderEntity.class);
 
-        when(mockEntity.getBillingAddress()).thenReturn(mock(AddressEntity.class));
         when(mockEntity.getShippingAddress()).thenReturn(mock(AddressEntity.class));
         when(mockEntity.getStatus()).thenReturn(new OrderStatus(OrderStatusType.PLACED, "comment"));
 

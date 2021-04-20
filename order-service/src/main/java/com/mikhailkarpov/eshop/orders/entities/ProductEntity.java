@@ -6,14 +6,13 @@ import javax.persistence.*;
 
 import static javax.persistence.FetchType.LAZY;
 
-@Entity(name = "OrderItem")
-@Table(name = "order_item")
+@Entity(name = "Product")
+@Table(name = "product")
 @NoArgsConstructor
 @Getter
 @Setter
-public class OrderItemEntity {
+public class ProductEntity {
 
-    @Id
     private String code;
 
     private String title;
@@ -27,7 +26,7 @@ public class OrderItemEntity {
     private OrderEntity order;
 
     @Builder
-    protected OrderItemEntity(String code, String title, Integer price, Integer quantity) {
+    protected ProductEntity(String code, String title, Integer price, Integer quantity) {
         this.code = code;
         this.title = title;
         this.price = price;
@@ -41,7 +40,7 @@ public class OrderItemEntity {
         if (o == null || getClass() != o.getClass())
             return false;
 
-        OrderItemEntity that = (OrderItemEntity) o;
+        ProductEntity that = (ProductEntity) o;
 
         return code.equals(that.code);
     }
