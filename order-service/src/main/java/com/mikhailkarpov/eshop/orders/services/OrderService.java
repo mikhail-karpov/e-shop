@@ -1,16 +1,17 @@
 package com.mikhailkarpov.eshop.orders.services;
 
-import com.mikhailkarpov.eshop.orders.dto.CreateOrderRequest;
-import com.mikhailkarpov.eshop.orders.dto.OrderDTO;
+import com.mikhailkarpov.eshop.orders.dto.*;
+import org.springframework.data.domain.Pageable;
 
-import java.util.List;
 import java.util.UUID;
 
 public interface OrderService {
 
-    void placeOrder(UUID orderId, String customerId, CreateOrderRequest request);
+    UUID createOrder(String customerId, CreateOrderRequest request);
 
-    List<OrderDTO> findAll();
+    PagedResult<OrderDTO> searchOrders(SearchOrdersRequest request, Pageable pageable);
 
-    OrderDTO findOrderById(UUID orderId);
+    OrderDTO findOrderById(UUID id);
+
+    void updateOrderStatus(UUID id, OrderStatus status);
 }

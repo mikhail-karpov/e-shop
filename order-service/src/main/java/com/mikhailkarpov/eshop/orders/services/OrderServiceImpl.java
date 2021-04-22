@@ -1,109 +1,88 @@
 package com.mikhailkarpov.eshop.orders.services;
 
-import com.mikhailkarpov.eshop.orders.config.MessagingConfig;
 import com.mikhailkarpov.eshop.orders.dto.*;
-import com.mikhailkarpov.eshop.orders.entities.AddressEntity;
-import com.mikhailkarpov.eshop.orders.entities.OrderEntity;
-import com.mikhailkarpov.eshop.orders.entities.ProductEntity;
-import com.mikhailkarpov.eshop.orders.entities.OrderStatus;
-import com.mikhailkarpov.eshop.orders.events.OrderPlacedEvent;
 import com.mikhailkarpov.eshop.orders.exceptions.OrderNotFoundException;
-import com.mikhailkarpov.eshop.orders.repositories.OrderEntityRepository;
+import com.mikhailkarpov.eshop.orders.persistence.entities.Address;
+import com.mikhailkarpov.eshop.orders.persistence.entities.Order;
+import com.mikhailkarpov.eshop.orders.persistence.entities.OrderItem;
+import com.mikhailkarpov.eshop.orders.persistence.repositories.OrderRepository;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
-import org.springframework.amqp.rabbit.annotation.RabbitListener;
-import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
-import static com.mikhailkarpov.eshop.orders.entities.OrderStatusType.PLACED;
+import static com.mikhailkarpov.eshop.orders.persistence.specification.OrderSpecification.*;
 
 @Service
+@Transactional
 @RequiredArgsConstructor
 public class OrderServiceImpl implements OrderService {
 
-    private final OrderEntityRepository orderRepository;
+    private final OrderRepository orderRepository;
     private final ModelMapper modelMapper = new ModelMapper();
-    private final RabbitTemplate rabbitTemplate;
 
     @Override
-    @Transactional
-    public void placeOrder(UUID orderId, String customerId, CreateOrderRequest request) {
+    public UUID createOrder(String customerId, CreateOrderRequest request) {
 
-        OrderEntity orderEntity = createOrderEntity(orderId, customerId, request);
-        orderRepository.save(orderEntity);
+        Address shippingAddress = modelMapper.map(request.getShippingAddress(), Address.class);
 
-        ProductReservationRequestMessage message = new ProductReservationRequestMessage(orderId, request.getItems());
-        rabbitTemplate.convertAndSend(MessagingConfig.ORDER_EXCHANGE, MessagingConfig.ROUTING_KEY, message);
-    }
+        Order order = new Order();
+        order.setCustomerId(customerId);
+        order.setShippingAddress(shippingAddress);
+        order.setStatus(OrderStatus.CREATED);
 
-    @RabbitListener(queues = MessagingConfig.ORDER_QUEUE)
-    public void handle(ProductReservationResponseMessage message) {
-        message
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public List<OrderDTO> findAll() {
-
-        List<OrderDTO> dtoList = new ArrayList<>();
-
-        orderRepository.findAll().forEach(entity -> {
-            OrderDTO dto = mapFromEntity(entity);
-            dtoList.add(dto);
+        request.getItems().stream().forEach(item -> {
+            OrderItem orderItem = modelMapper.map(item, OrderItem.class);
+            order.addItem(orderItem);
         });
 
-        return dtoList;
+        return orderRepository.save(order).getId();
     }
 
-    private OrderDTO mapFromEntity(OrderEntity entity) {
+    @Override
+    public PagedResult<OrderDTO> searchOrders(SearchOrdersRequest request, Pageable pageable) {
+
+        Specification<Order> spec = byCustomerId(request.getCustomerId()).and(byStatus(request.getStatus()));
+
+        Page<OrderDTO> orderDTOPage = orderRepository.findAll(spec, pageable).map(this::mapFromEntity);
+
+        return new PagedResult<>(orderDTOPage);
+    }
+
+    @Override
+    public OrderDTO findOrderById(UUID orderId) {
+
+        Order order = orderRepository.findById(orderId).orElseThrow(() -> {
+            String message = String.format("Order with id=\"%s\" not found", orderId);
+            return new OrderNotFoundException(message);
+        });
+
+        return mapFromEntity(order);
+    }
+
+    @Override
+    public void updateOrderStatus(UUID id, OrderStatus status) {
+
+        Order order = orderRepository.findById(id).orElseThrow(() -> {
+            String message = String.format("Order with id=\"%s\" not found", id);
+            return new OrderNotFoundException(message);
+        });
+        order.setStatus(status);
+    }
+
+    private OrderDTO mapFromEntity(Order entity) {
 
         OrderDTO dto = new OrderDTO();
 
         dto.setId(entity.getId());
         dto.setCustomerId(entity.getCustomerId());
-        dto.setStatus(new OrderStatusDTO(entity.getStatus().getType().toString(), entity.getStatus().getComment()));
-        dto.setShippingAddress(modelMapper.map(entity.getShippingAddress(), AddressDTO.class));
+        dto.setStatus(entity.getStatus());
 
         return dto;
-    }
-
-    @Override
-    @Transactional(readOnly = true)
-    public OrderDTO findOrderById(UUID orderId) {
-
-        return orderRepository.findById(orderId).map(this::mapFromEntity).orElseThrow(() -> {
-                    String message = String.format("Order with id=\"%s\" not found", orderId);
-                    return new OrderNotFoundException(message);
-                }
-        );
-    }
-
-    private OrderEntity createOrderEntity(UUID orderId, String customerId, CreateOrderRequest request) {
-
-        AddressEntity shippingAddress = modelMapper.map(request.getShippingAddress(), AddressEntity.class);
-
-        Set<ProductEntity> orderItems = request.getItems().stream().map(item -> {
-            ProductEntity productEntity = new ProductEntity();
-            productEntity.setCode(item.getCode());
-            productEntity.setQuantity(item.getQuantity());
-            return productEntity;
-        }).collect(Collectors.toSet());
-
-        OrderEntity orderEntity = new OrderEntity();
-
-        orderEntity.setId(orderId);
-        orderEntity.setCustomerId(customerId);
-        orderEntity.setShippingAddress(shippingAddress);
-        orderEntity.setItems(orderItems);
-        orderEntity.setStatus(new OrderStatus(PLACED, "Waiting for order reservation"));
-
-        return orderEntity;
     }
 }

@@ -3,13 +3,11 @@ package com.mikhailkarpov.eshop.orders.dto;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.UUID;
-
 @Data
 @NoArgsConstructor
-public class OrderDTO {
+public class SearchOrdersRequest {
 
-    private UUID id;
     private String customerId;
+
     private OrderStatus status;
 }
