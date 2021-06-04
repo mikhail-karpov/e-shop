@@ -1,7 +1,7 @@
 # E-Shop Microservice Architecture
 
 This is a demonstration project of a microservice architecture using Spring Boot, 
-Spring Cloud, Docker and Maven
+Spring Cloud, Docker and Maven. Work in progress.
 
 ## How to run
 
