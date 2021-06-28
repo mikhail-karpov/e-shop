@@ -1,6 +1,7 @@
 package com.mikhailkarpov.eshop.orders.controllers;
 
 import com.mikhailkarpov.eshop.orders.dto.*;
+import com.mikhailkarpov.eshop.orders.persistence.entities.OrderStatus;
 import com.mikhailkarpov.eshop.orders.services.OrderService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -11,6 +12,7 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.validation.Valid;
 import java.net.URI;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -26,8 +28,12 @@ public class OrderController {
                                                @RequestParam("status") Optional<String> status,
                                                Pageable pageable) {
 
-        SearchOrdersRequest request = buildSearchRequest(customerId, status);
-        return orderService.searchOrders(request, pageable);
+        if (customerId.isPresent() || status.isPresent()) {
+            SearchOrdersRequest request = buildSearchRequest(customerId, status);
+            return orderService.searchOrders(request, pageable);
+        } else {
+            return orderService.findAll(pageable);
+        }
     }
 
     @PostMapping("/orders")
@@ -37,12 +43,12 @@ public class OrderController {
         String customerId = UUID.randomUUID().toString(); // todo extract from JWT
         UUID orderId = orderService.createOrder(customerId, request);
 
-        URI location = uriComponentsBuilder.path("/order/{id}").build(orderId.toString());
+        URI location = uriComponentsBuilder.path("/orders/{id}").build(orderId.toString());
         return ResponseEntity.created(location).build();
     }
 
     @GetMapping("/orders/{id}")
-    public OrderDTO findOrderById(@PathVariable("id") UUID id) {
+    public OrderWithItemsDTO findOrderById(@PathVariable("id") UUID id) {
 
         return orderService.findOrderById(id);
     }

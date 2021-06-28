@@ -1,6 +1,6 @@
 package com.mikhailkarpov.eshop.orders.persistence.specification;
 
-import com.mikhailkarpov.eshop.orders.dto.OrderStatus;
+import com.mikhailkarpov.eshop.orders.persistence.entities.OrderStatus;
 import com.mikhailkarpov.eshop.orders.persistence.entities.Order;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.lang.Nullable;

@@ -1,5 +1,6 @@
 package com.mikhailkarpov.eshop.orders.dto;
 
+import com.mikhailkarpov.eshop.orders.persistence.entities.OrderItem;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -21,5 +22,10 @@ public class OrderItemDTO {
     public OrderItemDTO(String code, Integer quantity) {
         this.code = code;
         this.quantity = quantity;
+    }
+
+    public OrderItemDTO(OrderItem item) {
+        this.code = item.getCode();
+        this.quantity = item.getQuantity();
     }
 }

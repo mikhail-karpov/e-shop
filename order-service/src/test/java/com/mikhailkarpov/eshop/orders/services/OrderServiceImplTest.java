@@ -2,142 +2,184 @@ package com.mikhailkarpov.eshop.orders.services;
 
 import com.mikhailkarpov.eshop.orders.dto.*;
 import com.mikhailkarpov.eshop.orders.exceptions.OrderNotFoundException;
+import com.mikhailkarpov.eshop.orders.persistence.entities.Address;
 import com.mikhailkarpov.eshop.orders.persistence.entities.Order;
+import com.mikhailkarpov.eshop.orders.persistence.entities.OrderItem;
+import com.mikhailkarpov.eshop.orders.persistence.entities.OrderStatus;
 import com.mikhailkarpov.eshop.orders.persistence.repositories.OrderRepository;
-import org.junit.jupiter.api.BeforeEach;
+import com.mikhailkarpov.eshop.orders.utils.DtoUtils;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.autoconfigure.orm.jpa.TestEntityManager;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.Mockito;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
-import org.testcontainers.junit.jupiter.Testcontainers;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
-@Testcontainers
-@DataJpaTest
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
+@ExtendWith(SpringExtension.class)
 class OrderServiceImplTest {
 
-    @Container
-    static final PostgreSQLContainer POSTGRES =
-            new PostgreSQLContainer("postgres:12-alpine")
-                    .withDatabaseName("order_service")
-                    .withUsername("order_service")
-                    .withPassword("password");
-
-    @DynamicPropertySource
-    static void configDatasource(DynamicPropertyRegistry registry) {
-        registry.add("spring.datasource.url", POSTGRES::getJdbcUrl);
-        registry.add("spring.datasource.username", POSTGRES::getUsername);
-        registry.add("spring.datasource.password", POSTGRES::getPassword);
-    }
-
-    @Autowired
-    private TestEntityManager entityManager;
-
-    @Autowired
+    @Mock
     private OrderRepository orderRepository;
 
-    private OrderService orderService;
+    @InjectMocks
+    private OrderServiceImpl orderService;
 
-    @BeforeEach
-    public void setUp() {
-        orderService = new OrderServiceImpl(orderRepository);
-    }
+    private final AddressDTO addressDTO = DtoUtils.getValidAddress();
+
+    private final List<OrderItemDTO> itemDTOList = Arrays.asList(
+            new OrderItemDTO("abc", 5),
+            new OrderItemDTO("xyz", 3)
+    );
+
+    private final OrderItem item = new OrderItem("abc", 5);
+
+    private final Order order =
+            new Order("customerId", Mockito.mock(Address.class), OrderStatus.ACCEPTED, Collections.singleton(item));
 
     @Test
-    void givenRequest_whenCreateOrderAndFindById_thenSavedAndFound() {
+    void givenRequest_whenCreateOrder_thenUUIDReturned() {
         //given
-        CreateOrderRequest request = prepareRequest();
-
-        //when
-        UUID id = orderService.createOrder("customer", request);
-        Order entity = entityManager.find(Order.class, id);
-        OrderDTO dto = orderService.findOrderById(id);
-
-        //then
-        assertEquals("customer", entity.getCustomerId());
-        assertEquals(2, entity.getItems().size());
-        assertEquals(OrderStatus.CREATED, entity.getStatus());
-        assertEquals(id, entity.getShippingAddress().getId());
-
-        assertEquals(id, dto.getId());
-        assertEquals("customer", dto.getCustomerId());
-        assertEquals(OrderStatus.CREATED, dto.getStatus());
-    }
-
-    @Test
-    void givenNoOrder_whenFindById_thenThrows() {
-
-        assertThrows(OrderNotFoundException.class, () -> orderService.findOrderById(UUID.randomUUID()));
-    }
-
-    @Test
-    void givenOrder_whenUpdateStatus_thenUpdated() {
-        //given
-        UUID uuid = orderService.createOrder("customer", prepareRequest());
-
-        //when
-        orderService.updateOrderStatus(uuid, OrderStatus.SHIPPED);
-
-        //then
-        Order order = entityManager.find(Order.class, uuid);
-        assertEquals(OrderStatus.SHIPPED, order.getStatus());
-    }
-
-    @Test
-    void givenOrdersAndSearchRequest_whenFindOrders_thenFound() {
-        //given
-        orderService.createOrder("customer", prepareRequest());
-        UUID id = orderService.createOrder("customer", prepareRequest());
-        orderService.updateOrderStatus(id, OrderStatus.PAYED);
-
-        //and
-        SearchOrdersRequest request = new SearchOrdersRequest();
-        request.setCustomerId("customer");
-        request.setStatus(OrderStatus.PAYED);
-
-        //when
-        PagedResult<OrderDTO> orders = orderService.searchOrders(request, PageRequest.of(0, 5));
-
-        //then
-        assertEquals(1, orders.getContent().size());
-        assertEquals(1L, orders.getTotalElements());
-        assertEquals(0, orders.getPage());
-        assertEquals(1, orders.getTotalPages());
-    }
-
-    private CreateOrderRequest prepareRequest() {
-
-        AddressDTO shippingAddress = AddressDTO.builder()
-                .firstName("FirstName")
-                .lastName("LastName")
-                .zip("zip")
-                .country("Country")
-                .city("City")
-                .street("Street")
-                .phone("+7-951-5556-685")
-                .build();
-
-        List<OrderItemDTO> items = Arrays.asList(
-                new OrderItemDTO("abc", 2),
-                new OrderItemDTO("xyz", 3)
-        );
-
         CreateOrderRequest request = new CreateOrderRequest();
-        request.setShippingAddress(shippingAddress);
-        request.setItems(items);
-        return request;
+        request.setShippingAddress(addressDTO);
+        request.setItems(itemDTOList);
+
+        UUID expectedId = UUID.randomUUID();
+        Order mockOrder = Mockito.mock(Order.class);
+        when(mockOrder.getId()).thenReturn(expectedId);
+        when(orderRepository.save(any(Order.class))).thenReturn(mockOrder);
+
+        //when
+        UUID actualId = orderService.createOrder("customerId", request);
+
+        //then
+        assertEquals(expectedId, actualId);
+        verify(orderRepository).save(any(Order.class));
+    }
+
+    @Test
+    void givenRequest_whenSearchOrders_thenFound() {
+        //given
+        SearchOrdersRequest request = new SearchOrdersRequest();
+        request.setCustomerId("customerId");
+        request.setStatus(OrderStatus.ACCEPTED);
+
+        PageRequest pageRequest = PageRequest.of(1, 2);
+
+        when(orderRepository.findAll(any(Specification.class), eq(pageRequest)))
+                .thenReturn(new PageImpl(Arrays.asList(order), pageRequest, 3));
+
+        //when
+        PagedResult<OrderDTO> pagedResult = orderService.searchOrders(request, pageRequest);
+        List<OrderDTO> ordersDto = pagedResult.getContent();
+
+        //then
+        assertEquals(1, ordersDto.size());
+        assertEquals("customerId", ordersDto.get(0).getCustomerId());
+        assertEquals(OrderStatus.ACCEPTED, ordersDto.get(0).getStatus());
+        Assertions.assertNotNull(ordersDto.get(0).getShippingAddress());
+        assertEquals(order.getId(), ordersDto.get(0).getId());
+
+        assertEquals(1, pagedResult.getPage());
+        assertEquals(2, pagedResult.getTotalPages());
+        assertEquals(3, pagedResult.getTotalElements());
+
+        verify(orderRepository).findAll(any(Specification.class), eq(pageRequest));
+    }
+
+    @Test
+    void givenOrders_whenFindAll_thenFound() {
+        //given
+        PageRequest pageRequest = PageRequest.of(1, 2);
+        when(orderRepository.findAll(pageRequest))
+                .thenReturn(new PageImpl<>(Arrays.asList(order), pageRequest, 3));
+
+        //when
+        PagedResult<OrderDTO> pagedResult = orderService.findAll(pageRequest);
+        List<OrderDTO> ordersDto = pagedResult.getContent();
+
+        //then
+        assertEquals(1, ordersDto.size());
+        assertEquals("customerId", ordersDto.get(0).getCustomerId());
+        assertEquals(OrderStatus.ACCEPTED, ordersDto.get(0).getStatus());
+        Assertions.assertNotNull(ordersDto.get(0).getShippingAddress());
+        assertEquals(order.getId(), ordersDto.get(0).getId());
+
+        assertEquals(1, pagedResult.getPage());
+        assertEquals(2, pagedResult.getTotalPages());
+        assertEquals(3, pagedResult.getTotalElements());
+
+        verify(orderRepository).findAll(eq(pageRequest));
+    }
+
+    @Test
+    void givenOrder_whenFindOrderById_thenFound() {
+        //given
+        UUID id = order.getId();
+        when(orderRepository.findById(id)).thenReturn(Optional.of(order));
+
+        //when
+        OrderWithItemsDTO found = orderService.findOrderById(id);
+
+        //then
+        assertEquals("customerId", found.getCustomerId());
+        assertEquals(id, found.getId());
+        assertEquals(OrderStatus.ACCEPTED, found.getStatus());
+        Assertions.assertNotNull(found.getShippingAddress());
+        assertEquals(1, found.getItems().size());
+        assertEquals("abc", found.getItems().get(0).getCode());
+        assertEquals(5, found.getItems().get(0).getQuantity());
+
+        verify(orderRepository).findById(id);
+    }
+
+    @Test
+    void givenNoOrder_whenFindOrderById_thenThrown() {
+        //given
+        UUID id = order.getId();
+        when(orderRepository.findById(id)).thenReturn(Optional.empty());
+
+        //when
+        Assertions.assertThrows(OrderNotFoundException.class, () -> orderService.findOrderById(id));
+
+        verify(orderRepository).findById(id);
+    }
+
+    @Test
+    void givenOrder_whenUpdateOrderStatus_thenUpdated() {
+        //given
+        UUID id = order.getId();
+        when(orderRepository.findById(id)).thenReturn(Optional.of(order));
+
+        //when
+        orderService.updateOrderStatus(id, OrderStatus.CANCELED);
+
+        //then
+        Assertions.assertEquals(OrderStatus.CANCELED, order.getStatus());
+        verify(orderRepository).findById(id);
+
+        order.setStatus(OrderStatus.ACCEPTED);
+    }
+
+    @Test
+    void givenNoOrder_whenUpdateOrderStatus_thenThrown() {
+        //given
+        UUID id = order.getId();
+        when(orderRepository.findById(id)).thenReturn(Optional.empty());
+
+        //then
+        assertThrows(OrderNotFoundException.class, () -> orderService.updateOrderStatus(id, OrderStatus.CANCELED));
     }
 }

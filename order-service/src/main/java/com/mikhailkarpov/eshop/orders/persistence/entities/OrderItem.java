@@ -11,19 +11,25 @@ import static javax.persistence.FetchType.LAZY;
 
 @Entity
 @Table(name = "order_item")
-@Getter
-@Setter
 public class OrderItem {
 
     @Id
+    @Getter
     private UUID id;
 
     @ManyToOne(fetch = LAZY, optional = false)
-    @JoinColumn(name = "order_fk")
+    @JoinColumn(name = "order_fk", nullable = false, updatable = false)
+    @Getter
     private Order order;
 
+    @Getter
+    @Setter
+    @Column(name = "code", nullable = false)
     private String code;
 
+    @Getter
+    @Setter
+    @Column(name = "quantity", nullable = false)
     private Integer quantity;
 
     public OrderItem() {
@@ -43,7 +49,8 @@ public class OrderItem {
     @Override
     public String toString() {
         return "OrderItem{" +
-                "code='" + code + '\'' +
+                "id='" + id + '\'' +
+                ", code='" + code + '\'' +
                 ", quantity=" + quantity +
                 '}';
     }

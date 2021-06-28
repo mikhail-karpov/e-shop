@@ -1,5 +1,6 @@
 package com.mikhailkarpov.eshop.orders.dto;
 
+import com.mikhailkarpov.eshop.orders.persistence.entities.Address;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -40,5 +41,15 @@ public class AddressDTO {
         this.city = city;
         this.street = street;
         this.phone = phone;
+    }
+
+    public AddressDTO(Address address) {
+        this.lastName = address.getLastName();
+        this.firstName = address.getFirstName();
+        this.zip = address.getZip();
+        this.country = address.getCountry();
+        this.city = address.getCity();
+        this.street = address.getStreet();
+        this.phone = address.getPhone();
     }
 }

@@ -1,11 +1,7 @@
 CREATE TABLE orders (
     id uuid PRIMARY KEY NOT NULL,
     customer_id VARCHAR(255) NOT NULL,
-    status VARCHAR(255) NOT NULL
-);
-
-CREATE TABLE address (
-    order_id uuid PRIMARY KEY NOT NULL,
+    status VARCHAR(255) NOT NULL,
     first_name VARCHAR(255) NOT NULL,
     last_name VARCHAR(255) NOT NULL,
     zip VARCHAR(255) NOT NULL,
