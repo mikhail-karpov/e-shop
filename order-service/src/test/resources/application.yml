@@ -1,0 +1,8 @@
+app:
+  messaging:
+    order:
+      topicExchange: order
+      createdQueue: order-created-queue
+      updatedQueue: order-updated-queue
+      createdRoutingKey: order.event.created
+      updatedRoutingKey: order.event.updated

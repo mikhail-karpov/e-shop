@@ -2,12 +2,14 @@ package com.mikhailkarpov.eshop.orders.services;
 
 import com.mikhailkarpov.eshop.orders.dto.*;
 import com.mikhailkarpov.eshop.orders.exceptions.OrderNotFoundException;
+import com.mikhailkarpov.eshop.orders.messaging.OrderMessagePublisher;
+import com.mikhailkarpov.eshop.orders.messaging.events.OrderCreatedMessage;
 import com.mikhailkarpov.eshop.orders.persistence.entities.Address;
 import com.mikhailkarpov.eshop.orders.persistence.entities.Order;
 import com.mikhailkarpov.eshop.orders.persistence.entities.OrderItem;
 import com.mikhailkarpov.eshop.orders.persistence.entities.OrderStatus;
 import com.mikhailkarpov.eshop.orders.persistence.repositories.OrderRepository;
-import com.mikhailkarpov.eshop.orders.utils.DtoUtils;
+import com.mikhailkarpov.eshop.orders.utils.PojoUtils;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -34,10 +36,13 @@ class OrderServiceImplTest {
     @Mock
     private OrderRepository orderRepository;
 
+    @Mock
+    private OrderMessagePublisher orderMessagePublisher;
+
     @InjectMocks
     private OrderServiceImpl orderService;
 
-    private final AddressDTO addressDTO = DtoUtils.getValidAddress();
+    private final AddressDTO addressDTO = PojoUtils.getValidAddressDTO();
 
     private final List<OrderItemDTO> itemDTOList = Arrays.asList(
             new OrderItemDTO("abc", 5),
@@ -67,6 +72,7 @@ class OrderServiceImplTest {
         //then
         assertEquals(expectedId, actualId);
         verify(orderRepository).save(any(Order.class));
+        verify(orderMessagePublisher).send(new OrderCreatedMessage(actualId, itemDTOList));
     }
 
     @Test
@@ -164,10 +170,10 @@ class OrderServiceImplTest {
         when(orderRepository.findById(id)).thenReturn(Optional.of(order));
 
         //when
-        orderService.updateOrderStatus(id, OrderStatus.CANCELED);
+        orderService.updateOrderStatus(id, OrderStatus.REJECTED);
 
         //then
-        Assertions.assertEquals(OrderStatus.CANCELED, order.getStatus());
+        Assertions.assertEquals(OrderStatus.REJECTED, order.getStatus());
         verify(orderRepository).findById(id);
 
         order.setStatus(OrderStatus.ACCEPTED);
@@ -180,6 +186,6 @@ class OrderServiceImplTest {
         when(orderRepository.findById(id)).thenReturn(Optional.empty());
 
         //then
-        assertThrows(OrderNotFoundException.class, () -> orderService.updateOrderStatus(id, OrderStatus.CANCELED));
+        assertThrows(OrderNotFoundException.class, () -> orderService.updateOrderStatus(id, OrderStatus.REJECTED));
     }
 }

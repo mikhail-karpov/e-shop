@@ -3,28 +3,32 @@ package com.mikhailkarpov.eshop.orders.controllers;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mikhailkarpov.eshop.orders.BaseIT;
+import com.mikhailkarpov.eshop.orders.config.OrderMessagingProperties;
 import com.mikhailkarpov.eshop.orders.dto.AddressDTO;
 import com.mikhailkarpov.eshop.orders.dto.CreateOrderRequest;
 import com.mikhailkarpov.eshop.orders.dto.OrderItemDTO;
+import com.mikhailkarpov.eshop.orders.messaging.events.OrderCreatedMessage;
 import com.mikhailkarpov.eshop.orders.persistence.entities.Address;
 import com.mikhailkarpov.eshop.orders.persistence.entities.Order;
 import com.mikhailkarpov.eshop.orders.persistence.entities.OrderItem;
 import com.mikhailkarpov.eshop.orders.persistence.repositories.OrderRepository;
-import com.mikhailkarpov.eshop.orders.utils.DtoUtils;
+import com.mikhailkarpov.eshop.orders.utils.PojoUtils;
 import io.restassured.RestAssured;
 import io.restassured.response.ExtractableResponse;
 import io.restassured.response.Response;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.core.ParameterizedTypeReference;
 
 import java.util.*;
 
 import static com.mikhailkarpov.eshop.orders.persistence.entities.OrderStatus.ACCEPTED;
 import static com.mikhailkarpov.eshop.orders.persistence.entities.OrderStatus.CONFIRMED;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -39,11 +43,18 @@ class OrderControllerIT extends BaseIT {
     @Autowired
     private OrderRepository orderRepository;
 
+    @Autowired
+    private RabbitTemplate rabbitTemplate;
+
+    @Autowired
+    private OrderMessagingProperties messagingProperties;
+
     private Order order1;
     private Order order2;
 
+
     @BeforeEach
-    void setUp() {
+    void saveOrders() {
         //given
         OrderItem abcItem = new OrderItem("abc", 2);
         OrderItem xyzItem = new OrderItem("xyz", 3);
@@ -66,15 +77,10 @@ class OrderControllerIT extends BaseIT {
         order2 = orderRepository.save(new Order("customerId", address, CONFIRMED, Collections.singleton(xyzItem)));
     }
 
-    @AfterEach
-    void cleanUp() {
-        orderRepository.deleteAll();
-    }
-
     @Test
     void whenCreateOrderAndGetOrderById_thenFound() throws JsonProcessingException {
         //given
-        AddressDTO validAddress = DtoUtils.getValidAddress();
+        AddressDTO validAddress = PojoUtils.getValidAddressDTO();
         List<OrderItemDTO> items = Arrays.asList(
                 new OrderItemDTO("abc", 2),
                 new OrderItemDTO("xyz", 3)
@@ -111,19 +117,35 @@ class OrderControllerIT extends BaseIT {
                 .body("shippingAddress.firstName", equalTo(validAddress.getFirstName()))
                 .body("shippingAddress.lastName", equalTo(validAddress.getLastName()));
         //@formatter:on
+
+        //and given
+        ParameterizedTypeReference<OrderCreatedMessage> reference =
+                new ParameterizedTypeReference<OrderCreatedMessage>() {
+                };
+
+        //when
+        OrderCreatedMessage message = rabbitTemplate.receiveAndConvert(messagingProperties.getCreatedQueue(), reference);
+        Optional<Order> order = orderRepository.findById(message.getOrderId());
+
+        //then
+        assertThat(message.getItems()).containsAll(items);
+        assertThat(order.isPresent()).isTrue();
+        assertThat(order.get().getStatus()).isEqualTo(ACCEPTED);
     }
 
     @Test
     void givenOrders_whenFindAll_thenFound() {
+        //@formatter:off
         RestAssured
                 .when()
-                .get("http://localhost:" + port + "/orders")
+                    .get("http://localhost:" + port + "/orders")
                 .then()
                 .statusCode(200)
                 .body("content.size()", equalTo(2))
                 .body("page", equalTo(0))
                 .body("totalPages", equalTo(1))
                 .body("totalElements", equalTo(2));
+        //@formatter:on
     }
 
     @Test

@@ -2,11 +2,12 @@ package com.mikhailkarpov.eshop.orders.services;
 
 import com.mikhailkarpov.eshop.orders.dto.*;
 import com.mikhailkarpov.eshop.orders.exceptions.OrderNotFoundException;
+import com.mikhailkarpov.eshop.orders.messaging.OrderMessagePublisher;
+import com.mikhailkarpov.eshop.orders.messaging.events.OrderCreatedMessage;
 import com.mikhailkarpov.eshop.orders.persistence.entities.Address;
 import com.mikhailkarpov.eshop.orders.persistence.entities.Order;
 import com.mikhailkarpov.eshop.orders.persistence.entities.OrderItem;
 import com.mikhailkarpov.eshop.orders.persistence.entities.OrderStatus;
-import com.mikhailkarpov.eshop.orders.persistence.repositories.OrderItemRepository;
 import com.mikhailkarpov.eshop.orders.persistence.repositories.OrderRepository;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -16,7 +17,6 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
@@ -30,26 +30,28 @@ import static com.mikhailkarpov.eshop.orders.persistence.specification.OrderSpec
 public class OrderServiceImpl implements OrderService {
 
     private final OrderRepository orderRepository;
-    private final OrderItemRepository itemRepository;
+    private final OrderMessagePublisher orderMessagePublisher;
     private final ModelMapper modelMapper = new ModelMapper();
 
     @Override
     @Transactional
     public UUID createOrder(String customerId, CreateOrderRequest request) {
 
-        Address shippingAddress = modelMapper.map(request.getShippingAddress(), Address.class);
+        List<OrderItemDTO> items = request.getItems();
 
         Order order = new Order();
         order.setCustomerId(customerId);
-        order.setShippingAddress(shippingAddress);
+        order.setShippingAddress(modelMapper.map(request.getShippingAddress(), Address.class));
         order.setStatus(OrderStatus.ACCEPTED);
-
-        request.getItems().stream().forEach(item -> {
+        items.stream().forEach(item -> {
             OrderItem orderItem = modelMapper.map(item, OrderItem.class);
             order.addItem(orderItem);
         });
 
-        return orderRepository.save(order).getId();
+        UUID id = orderRepository.save(order).getId();
+        orderMessagePublisher.send(new OrderCreatedMessage(id, items));
+
+        return id;
     }
 
     @Override

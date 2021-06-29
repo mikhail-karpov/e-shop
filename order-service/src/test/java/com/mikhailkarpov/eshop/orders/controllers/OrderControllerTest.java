@@ -3,7 +3,7 @@ package com.mikhailkarpov.eshop.orders.controllers;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mikhailkarpov.eshop.orders.dto.*;
 import com.mikhailkarpov.eshop.orders.services.OrderService;
-import com.mikhailkarpov.eshop.orders.utils.DtoUtils;
+import com.mikhailkarpov.eshop.orders.utils.PojoUtils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -56,7 +56,7 @@ class OrderControllerTest {
     private final ObjectMapper objectMapper = new ObjectMapper();
     private final OrderItemDTO abcItem = new OrderItemDTO("abc", 2);
     private final OrderItemDTO xyzItem = new OrderItemDTO("xyz", 3);
-    private final AddressDTO addressDTO = DtoUtils.getValidAddress();
+    private final AddressDTO addressDTO = PojoUtils.getValidAddressDTO();
     private final UUID id = UUID.randomUUID();
     private final OrderDTO orderDTO = new OrderDTO(id, "customerId", ACCEPTED, addressDTO);
 
