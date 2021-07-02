@@ -5,7 +5,7 @@ Spring Cloud, Docker and Maven. Work in progress.
 
 ## How to run
 
-<code>mvn package [-DskipTests]</code>  
-<code>docker-compose build</code>  
-<code>docker-compose run --rm start-dependencies</code>  
-<code>docker-compose up</code>
+<code>mvn verify</code>  
+<code>docker compose build</code>  
+<code>docker compose run --rm start-dependencies</code>  
+<code>docker compose up</code>

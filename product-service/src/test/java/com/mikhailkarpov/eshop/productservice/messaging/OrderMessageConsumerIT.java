@@ -1,12 +1,11 @@
 package com.mikhailkarpov.eshop.productservice.messaging;
 
-import com.mikhailkarpov.eshop.productservice.AbstractIT;
 import com.mikhailkarpov.eshop.productservice.AbstractMessagingIT;
 import com.mikhailkarpov.eshop.productservice.config.OrderMessagingProperties;
 import com.mikhailkarpov.eshop.productservice.messaging.dto.OrderItem;
 import com.mikhailkarpov.eshop.productservice.messaging.dto.OrderStatus;
-import com.mikhailkarpov.eshop.productservice.messaging.events.OrderCreatedMessage;
-import com.mikhailkarpov.eshop.productservice.messaging.events.OrderUpdatedMessage;
+import com.mikhailkarpov.eshop.productservice.messaging.message.OrderCreatedMessage;
+import com.mikhailkarpov.eshop.productservice.messaging.message.OrderUpdatedMessage;
 import com.mikhailkarpov.eshop.productservice.persistence.entity.Product;
 import com.mikhailkarpov.eshop.productservice.persistence.repository.ProductRepository;
 import org.awaitility.Awaitility;

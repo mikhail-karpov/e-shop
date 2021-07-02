@@ -2,10 +2,9 @@ package com.mikhailkarpov.eshop.productservice.messaging;
 
 import com.mikhailkarpov.eshop.productservice.exception.OrderReservationException;
 import com.mikhailkarpov.eshop.productservice.messaging.dto.OrderStatus;
-import com.mikhailkarpov.eshop.productservice.messaging.events.OrderCreatedMessage;
-import com.mikhailkarpov.eshop.productservice.messaging.events.OrderUpdatedMessage;
+import com.mikhailkarpov.eshop.productservice.messaging.message.OrderCreatedMessage;
+import com.mikhailkarpov.eshop.productservice.messaging.message.OrderUpdatedMessage;
 import com.mikhailkarpov.eshop.productservice.service.OrderReservationService;
-import com.mikhailkarpov.eshop.productservice.service.ProductService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.amqp.rabbit.annotation.RabbitListener;

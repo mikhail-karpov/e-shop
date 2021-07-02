@@ -2,7 +2,7 @@ package com.mikhailkarpov.eshop.productservice.messaging;
 
 import com.mikhailkarpov.eshop.productservice.config.OrderMessagingProperties;
 import com.mikhailkarpov.eshop.productservice.messaging.dto.OrderStatus;
-import com.mikhailkarpov.eshop.productservice.messaging.events.OrderUpdatedMessage;
+import com.mikhailkarpov.eshop.productservice.messaging.message.OrderUpdatedMessage;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;

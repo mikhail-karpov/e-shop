@@ -1,7 +1,7 @@
 package com.mikhailkarpov.eshop.productservice.messaging;
 
 import com.mikhailkarpov.eshop.productservice.config.OrderMessagingProperties;
-import com.mikhailkarpov.eshop.productservice.messaging.events.OrderUpdatedMessage;
+import com.mikhailkarpov.eshop.productservice.messaging.message.OrderUpdatedMessage;
 import lombok.RequiredArgsConstructor;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.stereotype.Component;

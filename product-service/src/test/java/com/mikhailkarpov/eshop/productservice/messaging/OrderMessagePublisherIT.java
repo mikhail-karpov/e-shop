@@ -1,14 +1,11 @@
 package com.mikhailkarpov.eshop.productservice.messaging;
 
-import com.mikhailkarpov.eshop.productservice.AbstractIT;
 import com.mikhailkarpov.eshop.productservice.AbstractMessagingIT;
 import com.mikhailkarpov.eshop.productservice.config.OrderMessagingProperties;
 import com.mikhailkarpov.eshop.productservice.messaging.dto.OrderStatus;
-import com.mikhailkarpov.eshop.productservice.messaging.events.OrderUpdatedMessage;
+import com.mikhailkarpov.eshop.productservice.messaging.message.OrderUpdatedMessage;
 import org.assertj.core.api.Assertions;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.springframework.amqp.rabbit.core.RabbitAdmin;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;

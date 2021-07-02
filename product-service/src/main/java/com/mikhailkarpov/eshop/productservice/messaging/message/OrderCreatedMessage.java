@@ -1,4 +1,4 @@
-package com.mikhailkarpov.eshop.productservice.messaging.events;
+package com.mikhailkarpov.eshop.productservice.messaging.message;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.mikhailkarpov.eshop.productservice.messaging.dto.OrderItem;

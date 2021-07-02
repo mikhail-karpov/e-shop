@@ -1,5 +1,6 @@
 package com.mikhailkarpov.eshop.productservice.config;
 
+import com.mikhailkarpov.eshop.productservice.persistence.entity.Product;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
@@ -10,7 +11,7 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
+import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 @Configuration
@@ -30,12 +31,12 @@ public class RedisCacheConfig {
     }
 
     @Bean
-    public RedisTemplate<String, String> redisTemplate() {
+    public RedisTemplate<String, Product> redisTemplate() {
 
-        RedisTemplate<String, String> redisTemplate = new RedisTemplate<>();
+        RedisTemplate<String, Product> redisTemplate = new RedisTemplate<>();
         redisTemplate.setConnectionFactory(connectionFactory());
         redisTemplate.setKeySerializer(new StringRedisSerializer());
-        redisTemplate.setValueSerializer(new StringRedisSerializer());
+        redisTemplate.setValueSerializer(new Jackson2JsonRedisSerializer<>(Product.class));
         redisTemplate.setEnableTransactionSupport(true);
         redisTemplate.afterPropertiesSet();
         return redisTemplate;
