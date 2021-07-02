@@ -20,6 +20,7 @@ import java.util.Arrays;
 import java.util.stream.Stream;
 
 import static org.hamcrest.Matchers.hasSize;
+import static org.junit.jupiter.params.provider.Arguments.of;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -127,7 +128,10 @@ class ProductControllerTest {
 
         when(productService.create(any())).thenReturn(abc);
 
-        String requestBody = "{\"code\":\"abc\",\"title\":\"product 1\",\"description\":\"product 1 description\",\"quantity\":10,\"price\":12}";
+        String requestBody = "{\"code\":\"abc\"," +
+                "\"title\":\"product 1\"," +
+                "\"description\":\"product 1 description\"," +
+                "\"quantity\":10,\"price\":12}";
 
         mockMvc.perform(post("/products")
                 .contentType("application/json")
@@ -168,7 +172,11 @@ class ProductControllerTest {
 
         when(productService.update(anyString(), any())).thenReturn(abc);
 
-        String requestBody = "{\"code\":\"abc\",\"title\":\"product 1\",\"description\":\"product 1 description\",\"quantity\":10,\"price\":12}";
+        String requestBody = "{\"code\":\"abc\"," +
+                "\"title\":\"product 1\"," +
+                "\"description\":\"product 1 description\"," +
+                "\"quantity\":10," +
+                "\"price\":12}";
 
         mockMvc.perform(put("/products/{id}", "abc")
                 .contentType("application/json")
@@ -217,13 +225,14 @@ class ProductControllerTest {
 
     private static Stream<Arguments> getInvalidProducts() {
         return Stream.of(
-                Arguments.of(new ProductRequest(null, "product 1", "description 1", 1100, 15)),
-                Arguments.of(new ProductRequest("abc", null, "description 1", 1100, 15)),
-                Arguments.of(new ProductRequest("abc", "product 1", null, 1100, 15)),
-                Arguments.of(new ProductRequest("abc", "product 1", "description 1", null, 15)),
-                Arguments.of(new ProductRequest("abc", "product 1", "description 1", 1100, null)),
-                Arguments.of(new ProductRequest("abc", "product 1", "description 1", 0, 15)),
-                Arguments.of(new ProductRequest("abc", "product 1", "description 1", 1100, -1))
+                of(new ProductRequest(null, "product 1", "description 1", 1100, 15, 0)),
+                of(new ProductRequest("abc", null, "description 1", 1100, 15, 0)),
+                of(new ProductRequest("abc", "product 1", null, 1100, 15, 0)),
+                of(new ProductRequest("abc", "product 1", "description 1", null, 15, 0)),
+                of(new ProductRequest("abc", "product 1", "description 1", 1100, null, 0)),
+                of(new ProductRequest("abc", "product 1", "description 1", 0, 15, 0)),
+                of(new ProductRequest("abc", "product 1", "description 1", 1100, -1, 0)),
+                of(new ProductRequest("abc", "product 1", "description 1", 1100, 1, -1))
         );
     }
 }

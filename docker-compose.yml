@@ -7,12 +7,14 @@ services:
     depends_on:
       - config
       - product-service-db
+      - order-service-db
+      - rabbitmq
       - redis
-    command: config:8888 product-service-db:5432 redis:6379
+    command: config:8888 product-service-db:5432 order-service-db:5432 rabbitmq:5672 redis:6379
 
   config:
     build: ./config
-    restart: on-failure
+    container_name: config
     environment:
       - CONFIG_PASSWORD=${CONFIG_PASSWORD}
     ports:
@@ -20,9 +22,9 @@ services:
 
   discovery-service:
     build: ./discovery-service
+    container_name: discovery-service
     depends_on:
       - config
-    restart: on-failure
     environment:
       - CONFIG_URI=http://config:8888
       - CONFIG_PASSWORD=${CONFIG_PASSWORD}
@@ -32,10 +34,9 @@ services:
 
   gateway:
     build: ./gateway
+    container_name: gateway
     depends_on:
       - config
-      - discovery-service
-    restart: on-failure
     environment:
       - CONFIG_URI=http://config:8888
       - CONFIG_PASSWORD=${CONFIG_PASSWORD}
@@ -45,50 +46,79 @@ services:
 
   product-service:
     build: ./product-service
+    container_name: product-service-db
     depends_on:
       - config
       - product-service-db
+      - rabbitmq
       - redis
-    restart: on-failure
     environment:
       - CONFIG_URI=http://config:8888
       - CONFIG_PASSWORD=${CONFIG_PASSWORD}
       - SPRING_PROFILES_ACTIVE=dev
+      - PRODUCT_DB_USER=${PRODUCT_DB_USER}
       - PRODUCT_DB_PASSWORD=${PRODUCT_DB_PASSWORD}
+      - RABBITMQ_USER=${RABBITMQ_USER}
+      - RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
 
   product-service-db:
-    image: "postgres:12-alpine"
-    restart: always
+    image: "postgres:12"
+    container_name: product-serivce-db
     environment:
       - POSTGRES_DB=product_service
-      - POSTGRES_USER=product_service
+      - POSTGRES_USER=${PRODUCT_DB_USER}
       - POSTGRES_PASSWORD=${PRODUCT_DB_PASSWORD}
     ports:
     - 5432:5432
 
-  shopping-cart-service:
-    build: ./shopping-cart-service
-    depends_on:
-      - config
-      - discovery-service
-    restart: on-failure
-    environment:
-      - CONFIG_URI=http://config:8888
-      - CONFIG_PASSWORD=${CONFIG_PASSWORD}
-      - SPRING_PROFILES_ACTIVE=dev
+#  shopping-cart-service:
+#    build: ./shopping-cart-service
+#    container_name: shopping-cart-service
+#    depends_on:
+#      - config
+#    environment:
+#      - CONFIG_URI=http://config:8888
+#      - CONFIG_PASSWORD=${CONFIG_PASSWORD}
+#      - SPRING_PROFILES_ACTIVE=dev
 
   order-service:
     build: ./order-service
+    container_name: order-service
     depends_on:
       - config
-      - discovery-service
-    restart: on-failure
+      - rabbitmq
+      - order-service-db
     environment:
       - CONFIG_URI=http://config:8888
       - CONFIG_PASSWORD=${CONFIG_PASSWORD}
       - SPRING_PROFILES_ACTIVE=dev
+      - ORDER_DB_USER=${ORDER_DB_USER}
+      - ORDER_DB_PASSWORD=${ORDER_DB_PASSWORD}
+      - RABBITMQ_USER=${RABBITMQ_USER}
+      - RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
+
+  order-service-db:
+    image: "postgres:12"
+    container_name: order-service-db
+    environment:
+      - POSTGRES_DB=order_service
+      - POSTGRES_USER=${ORDER_DB_USER}
+      - POSTGRES_PASSWORD=${ORDER_DB_PASSWORD}
+    ports:
+      - 5433:5432
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    environment:
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_USER}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASSWORD}
+    ports:
+    - 5672:5672
+    - 15672:15672
 
   redis:
     image: redis:alpine
+    container_name: redis
     ports:
     - 6379:6379

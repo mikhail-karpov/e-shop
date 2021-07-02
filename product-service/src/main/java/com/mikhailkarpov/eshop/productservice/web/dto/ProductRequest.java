@@ -1,5 +1,6 @@
 package com.mikhailkarpov.eshop.productservice.web.dto;
 
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -9,7 +10,7 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
 @Data
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED) // for Jackson
 @AllArgsConstructor
 public class ProductRequest {
 
@@ -27,6 +28,9 @@ public class ProductRequest {
     private Integer price;
 
     @NotNull(message = "quantity must be provided")
-    @Min(value = 0, message = "price must be non-negative")
+    @Min(value = 0, message = "quantity must be non-negative")
     private Integer quantity;
+
+    @Min(value = 0, message = "reserved quantity must be non-negative")
+    private Integer reserved;
 }

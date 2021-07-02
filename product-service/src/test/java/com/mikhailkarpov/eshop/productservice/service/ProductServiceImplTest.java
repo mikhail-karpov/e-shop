@@ -1,6 +1,6 @@
 package com.mikhailkarpov.eshop.productservice.service;
 
-import com.mikhailkarpov.eshop.productservice.exception.DuplicateProductCodeException;
+import com.mikhailkarpov.eshop.productservice.exception.ProductDuplicateCodeException;
 import com.mikhailkarpov.eshop.productservice.exception.ResourceNotFoundException;
 import com.mikhailkarpov.eshop.productservice.persistence.entity.Product;
 import com.mikhailkarpov.eshop.productservice.persistence.repository.ProductRepository;
@@ -47,7 +47,7 @@ class ProductServiceImplTest {
     void givenRequest_whenCreateProduct_thenSaved() {
         //given
         ProductRequest request =
-                new ProductRequest("abc", "product", "description", 1050, 16);
+                new ProductRequest("abc", "product", "description", 1050, 16, 0);
         when(productRepository.existsById("abc")).thenReturn(false);
         when(productRepository.save(any(Product.class))).thenReturn(expectedProduct);
 
@@ -68,10 +68,10 @@ class ProductServiceImplTest {
         //given
         when(productRepository.existsById("abc")).thenReturn(true);
         ProductRequest request =
-                new ProductRequest("abc", "product", "description", 1050, 16);
+                new ProductRequest("abc", "product", "description", 1050, 16, 0);
 
         //when
-        assertThrows(DuplicateProductCodeException.class, () -> productService.create(request));
+        assertThrows(ProductDuplicateCodeException.class, () -> productService.create(request));
 
         //then
         verify(productRepository).existsById("abc");
@@ -155,7 +155,7 @@ class ProductServiceImplTest {
 
         //when
         ProductRequest request =
-                new ProductRequest("abc", "update", "update description", 100, 6);
+                new ProductRequest("abc", "update", "update description", 100, 6, 2);
         Product updatedProduct = productService.update("abc", request);
 
         //then

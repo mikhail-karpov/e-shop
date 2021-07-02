@@ -5,15 +5,16 @@ import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.PostgreSQLContainer;
 
-public class AbstractIntegrationTest {
+public class AbstractIT {
 
     static final PostgreSQLContainer POSTGRES;
 
     static final GenericContainer REDIS;
 
     static {
-        REDIS = new GenericContainer("redis:alpine").withExposedPorts(6379);
-        POSTGRES = (PostgreSQLContainer) new PostgreSQLContainer("postgres:12-alpine")
+        REDIS = new GenericContainer("redis").withExposedPorts(6379).withReuse(true);
+
+        POSTGRES = (PostgreSQLContainer) new PostgreSQLContainer("postgres")
                 .withDatabaseName("product_service")
                 .withUsername("postgres")
                 .withPassword("password")
@@ -32,7 +33,7 @@ public class AbstractIntegrationTest {
 
     @DynamicPropertySource
     private static void configureRedis(DynamicPropertyRegistry registry) {
-        registry.add("spring.redis.host", () -> REDIS.getHost());
-        registry.add("spring.redis.port", () -> REDIS.getFirstMappedPort());
+        registry.add("spring.redis.host", REDIS::getHost);
+        registry.add("spring.redis.port", REDIS::getFirstMappedPort);
     }
 }

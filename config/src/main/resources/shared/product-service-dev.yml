@@ -1,9 +1,5 @@
 spring:
   datasource:
     url: jdbc:postgresql://product-service-db:5432/product_service
-    username: product_service
+    username: ${PRODUCT_DB_USER}
     password: ${PRODUCT_DB_PASSWORD}
-
-  redis:
-    host: redis
-    port: 6379

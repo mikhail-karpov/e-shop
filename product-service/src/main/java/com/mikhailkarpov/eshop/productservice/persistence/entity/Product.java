@@ -1,7 +1,9 @@
 package com.mikhailkarpov.eshop.productservice.persistence.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import lombok.NoArgsConstructor;
+import com.mikhailkarpov.eshop.productservice.exception.ProductNotValidException;
+import lombok.*;
+import org.springframework.util.Assert;
 
 import javax.persistence.*;
 
@@ -11,7 +13,9 @@ import static javax.persistence.FetchType.LAZY;
 
 @Entity(name = "Product")
 @Table(name = "product")
-@NoArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PROTECTED) // for JPA
+@Getter
+@Setter
 public class Product implements Serializable {
 
     private static final long serialVersionUID = 535196700385883110L;
@@ -31,64 +35,72 @@ public class Product implements Serializable {
     @Column(name = "quantity", nullable = false)
     private Integer quantity;
 
+    @Column(name = "reserved", nullable = false)
+    private Integer reserved;
+
     @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "category_fk")
     @JsonIgnore
     private Category category;
 
+    @Builder
     public Product(String code, String title, String description, Integer price, Integer quantity) {
-        this.code = code;
-        this.title = title;
-        this.description = description;
-        this.price = price;
-        this.quantity = quantity;
-    }
-
-    public String getCode() {
-        return code;
+        setCode(code);
+        setTitle(title);
+        setDescription(description);
+        setPrice(price);
+        setQuantity(quantity);
+        setReserved(0);
     }
 
     public void setCode(String code) {
+        if (code == null || code.isEmpty()) {
+            throw new ProductNotValidException("Code must be provided");
+        }
         this.code = code;
     }
 
-    public String getTitle() {
-        return title;
-    }
-
     public void setTitle(String title) {
+        if (title == null || title.isEmpty()) {
+            throw new ProductNotValidException("Title must be provided");
+        }
         this.title = title;
     }
 
-    public String getDescription() {
-        return description;
-    }
-
     public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public Integer getPrice() {
-        return price;
+        if (description == null || description.isEmpty()) {
+            throw new ProductNotValidException("Title must be provided");
+        }this.description = description;
     }
 
     public void setPrice(Integer price) {
+        if (price == null || price <= 0) {
+            throw new ProductNotValidException("Invalid price: " + price);
+        }
         this.price = price;
     }
 
-    public Integer getQuantity() {
-        return quantity;
-    }
-
     public void setQuantity(Integer quantity) {
+        if (quantity == null || quantity < 0) {
+            throw new ProductNotValidException("Invalid quantity: " + quantity);
+        }
         this.quantity = quantity;
     }
 
-    public Category getCategory() {
-        return category;
+    public void setReserved(Integer reserved) {
+        if (reserved == null || reserved < 0) {
+            throw new ProductNotValidException("Invalid price: " + price);
+        } else if (reserved > quantity) {
+            String message = String.format("Reserved = %d > total quantity = %d", reserved, quantity);
+            throw new ProductNotValidException(message);
+        }
+        this.reserved = reserved;
     }
 
-    public void setCategory(Category category) {
+    protected void setCategory(Category category) {
+        if (category == null) {
+            throw new ProductNotValidException("Category must be provided");
+        }
         this.category = category;
     }
 
@@ -117,6 +129,7 @@ public class Product implements Serializable {
                 ", description='" + description + '\'' +
                 ", price=" + price +
                 ", quantity=" + quantity +
+                ", reserved=" + reserved +
                 '}';
     }
 }

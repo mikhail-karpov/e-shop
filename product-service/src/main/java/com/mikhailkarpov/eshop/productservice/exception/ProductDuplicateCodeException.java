@@ -4,9 +4,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 @ResponseStatus(value = HttpStatus.CONFLICT, reason = "Duplicate product code")
-public class DuplicateProductCodeException extends RuntimeException {
+public class ProductDuplicateCodeException extends RuntimeException {
 
-    public DuplicateProductCodeException(String message) {
+    public ProductDuplicateCodeException(String message) {
         super(message);
     }
 }
