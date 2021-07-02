@@ -11,5 +11,6 @@ CREATE TABLE product(
     description VARCHAR(255) NOT NULL,
     price INT NOT NULL,
     quantity INT NOT NULL,
+    reserved INT NOT NULL DEFAULT 0,
     category_fk BIGINT REFERENCES category(id)
 );
