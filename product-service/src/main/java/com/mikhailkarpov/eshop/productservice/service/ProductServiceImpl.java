@@ -1,9 +1,7 @@
 package com.mikhailkarpov.eshop.productservice.service;
 
-import com.mikhailkarpov.eshop.productservice.exception.OrderReservationException;
 import com.mikhailkarpov.eshop.productservice.exception.ProductDuplicateCodeException;
 import com.mikhailkarpov.eshop.productservice.exception.ResourceNotFoundException;
-import com.mikhailkarpov.eshop.productservice.messaging.dto.OrderItem;
 import com.mikhailkarpov.eshop.productservice.persistence.entity.Product;
 import com.mikhailkarpov.eshop.productservice.persistence.repository.ProductRepository;
 import com.mikhailkarpov.eshop.productservice.web.dto.ProductRequest;
@@ -14,12 +12,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -45,11 +37,6 @@ public class ProductServiceImpl implements ProductService {
                 .price(request.getPrice())
                 .quantity(request.getQuantity())
                 .build();
-
-        Integer reserved = request.getReserved();
-        if (reserved != null) {
-            product.setReserved(reserved);
-        }
 
         product = productRepository.save(product);
         log.info("Saving {}", product);
@@ -88,11 +75,6 @@ public class ProductServiceImpl implements ProductService {
         product.setDescription(update.getDescription());
         product.setPrice(update.getPrice());
         product.setQuantity(update.getQuantity());
-
-        Integer reserved = update.getReserved();
-        if (reserved != null) {
-            product.setReserved(reserved);
-        }
 
         log.info("Updating {}", product);
 

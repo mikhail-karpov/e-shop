@@ -1,6 +1,6 @@
 package com.mikhailkarpov.eshop.productservice.persistence.repository;
 
-import com.mikhailkarpov.eshop.productservice.AbstractIT;
+import com.mikhailkarpov.eshop.productservice.DatabaseIT;
 import com.mikhailkarpov.eshop.productservice.persistence.entity.Category;
 import com.mikhailkarpov.eshop.productservice.persistence.entity.Product;
 import org.junit.jupiter.api.Test;
@@ -17,7 +17,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-class ProductRepositoryIT extends AbstractIT {
+class ProductRepositoryIT extends DatabaseIT {
 
     @Autowired
     private TestEntityManager entityManager;

@@ -28,6 +28,7 @@ public class OrderMessageConsumer {
 
         try {
             reservationService.reserve(message.getItems());
+
         } catch (OrderReservationException e) {
             status = OrderStatus.REJECTED;
         }

@@ -225,14 +225,13 @@ class ProductControllerTest {
 
     private static Stream<Arguments> getInvalidProducts() {
         return Stream.of(
-                of(new ProductRequest(null, "product 1", "description 1", 1100, 15, 0)),
-                of(new ProductRequest("abc", null, "description 1", 1100, 15, 0)),
-                of(new ProductRequest("abc", "product 1", null, 1100, 15, 0)),
-                of(new ProductRequest("abc", "product 1", "description 1", null, 15, 0)),
-                of(new ProductRequest("abc", "product 1", "description 1", 1100, null, 0)),
-                of(new ProductRequest("abc", "product 1", "description 1", 0, 15, 0)),
-                of(new ProductRequest("abc", "product 1", "description 1", 1100, -1, 0)),
-                of(new ProductRequest("abc", "product 1", "description 1", 1100, 1, -1))
+                of(new ProductRequest(null, "product 1", "description 1", 1100, 15)),
+                of(new ProductRequest("abc", null, "description 1", 1100, 15)),
+                of(new ProductRequest("abc", "product 1", null, 1100, 15)),
+                of(new ProductRequest("abc", "product 1", "description 1", null, 15)),
+                of(new ProductRequest("abc", "product 1", "description 1", 1100, null)),
+                of(new ProductRequest("abc", "product 1", "description 1", 0, 15)),
+                of(new ProductRequest("abc", "product 1", "description 1", 1100, -1))
         );
     }
 }

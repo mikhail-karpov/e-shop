@@ -11,6 +11,7 @@ import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
 import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
@@ -31,14 +32,18 @@ public class RedisCacheConfig {
     }
 
     @Bean
-    public RedisTemplate<String, Product> redisTemplate() {
+    public RedisTemplate<String, Object> redisTemplate() {
 
-        RedisTemplate<String, Product> redisTemplate = new RedisTemplate<>();
+        RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
+        GenericJackson2JsonRedisSerializer jsonSerializer = new GenericJackson2JsonRedisSerializer();
+
         redisTemplate.setConnectionFactory(connectionFactory());
+        redisTemplate.setDefaultSerializer(jsonSerializer);
         redisTemplate.setKeySerializer(new StringRedisSerializer());
-        redisTemplate.setValueSerializer(new Jackson2JsonRedisSerializer<>(Product.class));
-        redisTemplate.setEnableTransactionSupport(true);
+        redisTemplate.setValueSerializer(jsonSerializer);
+        redisTemplate.setHashKeySerializer(jsonSerializer);
         redisTemplate.afterPropertiesSet();
+
         return redisTemplate;
     }
 

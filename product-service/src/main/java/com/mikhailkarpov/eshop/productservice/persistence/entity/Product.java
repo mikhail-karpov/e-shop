@@ -1,9 +1,8 @@
 package com.mikhailkarpov.eshop.productservice.persistence.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.mikhailkarpov.eshop.productservice.exception.ProductNotValidException;
+import com.mikhailkarpov.eshop.productservice.exception.ProductReservationException;
 import lombok.*;
-import org.springframework.util.Assert;
 
 import javax.persistence.*;
 
@@ -14,8 +13,6 @@ import static javax.persistence.FetchType.LAZY;
 @Entity(name = "Product")
 @Table(name = "product")
 @NoArgsConstructor(access = AccessLevel.PROTECTED) // for JPA
-@Getter
-@Setter
 public class Product implements Serializable {
 
     private static final long serialVersionUID = 535196700385883110L;
@@ -36,6 +33,7 @@ public class Product implements Serializable {
     private Integer quantity;
 
     @Column(name = "reserved", nullable = false)
+    @JsonIgnore
     private Integer reserved;
 
     @ManyToOne(fetch = LAZY)
@@ -44,63 +42,78 @@ public class Product implements Serializable {
     private Category category;
 
     @Builder
-    public Product(String code, String title, String description, Integer price, Integer quantity) {
-        setCode(code);
-        setTitle(title);
-        setDescription(description);
-        setPrice(price);
-        setQuantity(quantity);
-        setReserved(0);
+    public Product(String code, String title, String description, int price, int quantity) {
+        this.code = code;
+        this.title = title;
+        this.description = description;
+        this.price = price;
+        this.quantity = quantity;
+        this.reserved = 0;
     }
 
-    public void setCode(String code) {
-        if (code == null || code.isEmpty()) {
-            throw new ProductNotValidException("Code must be provided");
-        }
-        this.code = code;
+    public String getCode() {
+        return code;
+    }
+
+    public String getTitle() {
+        return title;
     }
 
     public void setTitle(String title) {
-        if (title == null || title.isEmpty()) {
-            throw new ProductNotValidException("Title must be provided");
-        }
         this.title = title;
     }
 
-    public void setDescription(String description) {
-        if (description == null || description.isEmpty()) {
-            throw new ProductNotValidException("Title must be provided");
-        }this.description = description;
+    public String getDescription() {
+        return description;
     }
 
-    public void setPrice(Integer price) {
-        if (price == null || price <= 0) {
-            throw new ProductNotValidException("Invalid price: " + price);
-        }
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public int getPrice() {
+        return price;
+    }
+
+    public void setPrice(int price) {
         this.price = price;
     }
 
-    public void setQuantity(Integer quantity) {
-        if (quantity == null || quantity < 0) {
-            throw new ProductNotValidException("Invalid quantity: " + quantity);
-        }
+    public int getQuantity() {
+        return quantity;
+    }
+
+    public void setQuantity(int quantity) {
         this.quantity = quantity;
     }
 
-    public void setReserved(Integer reserved) {
-        if (reserved == null || reserved < 0) {
-            throw new ProductNotValidException("Invalid price: " + price);
-        } else if (reserved > quantity) {
-            String message = String.format("Reserved = %d > total quantity = %d", reserved, quantity);
-            throw new ProductNotValidException(message);
+    public int getReserved() {
+        return reserved;
+    }
+
+    public void addReserved(int reserved) throws ProductReservationException {
+
+        if (reserved < 0) {
+            String message = "Non-negative amount must be provided";
+            throw new ProductReservationException(message);
         }
-        this.reserved = reserved;
+
+        int total = getQuantity();
+        int alreadyReserved = getReserved();
+
+        if (reserved > total - alreadyReserved) {
+            String message = "Not enough product for reservation";
+            throw new ProductReservationException(message);
+        }
+
+        this.reserved = reserved + alreadyReserved;
+    }
+
+    protected Category getCategory() {
+        return category;
     }
 
     protected void setCategory(Category category) {
-        if (category == null) {
-            throw new ProductNotValidException("Category must be provided");
-        }
         this.category = category;
     }
 

@@ -31,6 +31,4 @@ public class ProductRequest {
     @Min(value = 0, message = "quantity must be non-negative")
     private Integer quantity;
 
-    @Min(value = 0, message = "reserved quantity must be non-negative")
-    private Integer reserved;
 }
