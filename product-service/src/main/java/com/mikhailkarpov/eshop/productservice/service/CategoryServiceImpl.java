@@ -7,6 +7,7 @@ import com.mikhailkarpov.eshop.productservice.persistence.entity.Product;
 import com.mikhailkarpov.eshop.productservice.persistence.repository.CategoryRepository;
 import com.mikhailkarpov.eshop.productservice.persistence.repository.ProductRepository;
 import com.mikhailkarpov.eshop.productservice.web.dto.CategoryRequest;
+import com.mikhailkarpov.eshop.productservice.web.dto.CategoryResponse;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -26,7 +27,7 @@ public class CategoryServiceImpl implements CategoryService {
     private final ProductRepository productRepository;
 
     @Override
-    public Category createCategory(@Valid CategoryRequest request) {
+    public CategoryResponse createCategory(@Valid CategoryRequest request) {
 
         Category category = new Category();
         category.setTitle(request.getTitle());
@@ -35,19 +36,19 @@ public class CategoryServiceImpl implements CategoryService {
         category = categoryRepository.save(category);
         log.info("Creating {}", category);
 
-        return category;
+        return mapFromEntity(category);
     }
 
     @Override
-    public Category createSubcategory(Long parentId, @Valid CategoryRequest request) {
+    public CategoryResponse createSubcategory(Long parentId, @Valid CategoryRequest request) {
 
-        Category parent = findById(parentId);
+        Category parent = findCategoryById(parentId);
         Category subcategory = parent.createSubcategory(request.getTitle(), request.getDescription());
 
         subcategory = categoryRepository.save(subcategory);
         log.info("Creating {} with parent-id={}", subcategory, parentId);
 
-        return subcategory;
+        return mapFromEntity(subcategory);
     }
 
     @Override
@@ -57,9 +58,9 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public void delete(Long id, Boolean forced) {
+    public void delete(Long id, boolean forced) {
 
-        Category category = findById(id);
+        Category category = findCategoryById(id);
 
         if (!forced && (categoryRepository.countByParentId(id) > 0 || productRepository.countByCategoryId(id) > 0)) {
             String message = String.format("Category with id=%d not empty", id);
@@ -71,51 +72,59 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public Category findById(Long id) {
+    public CategoryResponse findById(Long id) {
 
-        return categoryRepository.findById(id).orElseThrow(() -> {
-            String message = String.format("Category with id=%d not found", id);
-            return new ResourceNotFoundException(message);
-        });
+        return categoryRepository.findById(id)
+                .map(this::mapFromEntity)
+                .orElseThrow(() -> {
+                    String message = String.format("Category with id=%d not found", id);
+                    return new ResourceNotFoundException(message);
+                });
     }
 
     @Override
-    public List<Category> findParentCategories() {
+    public List<CategoryResponse> findParentCategories() {
 
-        List<Category> categories = new ArrayList<>();
-        categoryRepository.findAllByParentId(null).forEach(categories::add);
+        List<CategoryResponse> categories = new ArrayList<>();
+        categoryRepository.findAllByParentId(null).forEach(category -> {
+            CategoryResponse response = mapFromEntity(category);
+            categories.add(response);
+        });
         return categories;
     }
 
     @Override
-    public List<Category> findSubcategoriesByParentId(Long id) {
+    public List<CategoryResponse> findSubcategoriesByParentId(Long id) {
 
-        List<Category> subcategories = new ArrayList<>();
-        categoryRepository.findAllByParentId(id).forEach(subcategories::add);
+        List<CategoryResponse> subcategories = new ArrayList<>();
+        categoryRepository.findAllByParentId(id).forEach(category -> {
+            CategoryResponse response = mapFromEntity(category);
+            subcategories.add(response);
+        });
 
         if (subcategories.isEmpty() && !categoryRepository.findById(id).isPresent()) {
             String message = String.format("Category with id=%d not found", id);
-            throw  new ResourceNotFoundException(message);
+            throw new ResourceNotFoundException(message);
         }
 
         return subcategories;
     }
 
     @Override
-    public Category update(Long id, CategoryRequest update) {
+    public CategoryResponse update(Long id, CategoryRequest update) {
 
-        Category category = findById(id);
+        Category category = findCategoryById(id);
         category.setTitle(update.getTitle());
         category.setDescription(update.getDescription());
 
         log.info("Updating {}", category);
-        return category;
+        return mapFromEntity(category);
     }
 
     @Override
     public void addProduct(Long id, String productCode) {
 
-        Category category = findById(id);
+        Category category = findCategoryById(id);
         Product product = findProductByCode(productCode);
 
         category.addProduct(product);
@@ -125,11 +134,18 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public void removeProduct(Long id, String productCode) {
 
-        Category category = findById(id);
+        Category category = findCategoryById(id);
         Product product = findProductByCode(productCode);
 
         category.removeProduct(product);
         log.info("Removed {} from {}", product, category);
+    }
+
+    private Category findCategoryById(Long id) {
+        return categoryRepository.findById(id).orElseThrow(() -> {
+            String message = String.format("Category with id=%d not found", id);
+            return new ResourceNotFoundException(message);
+        });
     }
 
     private Product findProductByCode(String productCode) {
@@ -137,5 +153,9 @@ public class CategoryServiceImpl implements CategoryService {
             String message = String.format("Product with code=%s not found", productCode);
             return new ResourceNotFoundException(message);
         });
+    }
+
+    private CategoryResponse mapFromEntity(Category category) {
+        return new CategoryResponse(category.getId(), category.getTitle(), category.getDescription());
     }
 }

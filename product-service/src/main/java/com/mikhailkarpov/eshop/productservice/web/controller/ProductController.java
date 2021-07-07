@@ -43,7 +43,8 @@ public class ProductController {
     }
 
     @PostMapping
-    public ResponseEntity<Product> create(@Valid @RequestBody ProductRequest request, UriComponentsBuilder uriComponentsBuilder) {
+    public ResponseEntity<Product> create(@Valid @RequestBody ProductRequest request,
+                                          UriComponentsBuilder uriComponentsBuilder) {
 
         Product product = productService.create(request);
         URI location = uriComponentsBuilder.path("/products/{code}").build(product.getCode());

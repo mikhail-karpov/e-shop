@@ -1,5 +1,8 @@
 package com.mikhailkarpov.eshop.productservice;
 
+import org.flywaydb.core.Flyway;
+import org.junit.jupiter.api.BeforeEach;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 import org.testcontainers.containers.GenericContainer;
@@ -24,5 +27,14 @@ public class DatabaseIT {
         registry.add("spring.datasource.url", POSTGRES::getJdbcUrl);
         registry.add("spring.datasource.username", POSTGRES::getUsername);
         registry.add("spring.datasource.password", POSTGRES::getPassword);
+    }
+
+    @Autowired
+    private Flyway flyway;
+
+    @BeforeEach
+    void cleanUp() {
+        flyway.clean();
+        flyway.migrate();
     }
 }
