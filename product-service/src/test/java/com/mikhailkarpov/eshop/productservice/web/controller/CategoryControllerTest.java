@@ -3,6 +3,7 @@ package com.mikhailkarpov.eshop.productservice.web.controller;
 import com.mikhailkarpov.eshop.productservice.persistence.entity.Category;
 import com.mikhailkarpov.eshop.productservice.service.CategoryService;
 import com.mikhailkarpov.eshop.productservice.web.dto.CategoryRequest;
+import com.mikhailkarpov.eshop.productservice.web.dto.CategoryResponse;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.EmptySource;
@@ -30,15 +31,12 @@ class CategoryControllerTest {
 
     @Test
     void whenGetCategories_thenReturnParentCategoriesSortedByTitle() throws Exception {
-
-        Category category1 = new Category("category 1", "category 1 description");
-        category1.setId(1L);
-
-        Category category2 = new Category("category 2", "category 2 description");
-        category2.setId(2L);
-
+        //given
+        CategoryResponse category1 = new CategoryResponse(1L, "category 1", "category 1 description");
+        CategoryResponse category2 = new CategoryResponse(2L, "category 2", "category 2 description");
         when(categoryService.findParentCategories()).thenReturn(Arrays.asList(category1, category2));
 
+        //when
         mockMvc.perform(get("/categories")
                 .accept("application/json"))
                 .andExpect(status().isOk())
@@ -52,18 +50,18 @@ class CategoryControllerTest {
                 .andExpect(jsonPath("[1].title").value("category 2"))
                 .andExpect(jsonPath("[1].description").value("category 2 description"));
 
+        //then
         verify(categoryService).findParentCategories();
         verifyNoMoreInteractions(categoryService);
     }
 
     @Test
     void whenGetCategoryById_thenReturnCategory() throws Exception {
-
-        Category category1 = new Category("category 1", "category 1 description");
-        category1.setId(1L);
-
+        //given
+        CategoryResponse category1 = new CategoryResponse(1L, "category 1", "category 1 description");
         when(categoryService.findById(1L)).thenReturn(category1);
 
+        //when
         mockMvc.perform(get("/categories/{id}", 1)
                 .accept("application/json"))
                 .andExpect(status().isOk())
@@ -72,18 +70,18 @@ class CategoryControllerTest {
                 .andExpect(jsonPath("$.title").value("category 1"))
                 .andExpect(jsonPath("$.description").value("category 1 description"));
 
+        //then
         verify(categoryService).findById(1L);
         verifyNoMoreInteractions(categoryService);
     }
 
     @Test
     void givenValidCategoryRequest_whenPostCategories_thenCreated() throws Exception {
-
-        Category expected = new Category("category 1", "category 1 description");
-        expected.setId(1L);
-
+        //given
+        CategoryResponse expected = new CategoryResponse(1L, "category 1", "category 1 description");
         when(categoryService.createCategory(any(CategoryRequest.class))).thenReturn(expected);
 
+        //when
         mockMvc.perform(post("/categories")
                 .contentType("application/json")
                 .content("{\"title\":\"category 1\", \"description\":\"category 1 description\"}"))
@@ -94,6 +92,7 @@ class CategoryControllerTest {
                 .andExpect(jsonPath("$.title").value("category 1"))
                 .andExpect(jsonPath("$.description").value("category 1 description"));
 
+        //then
         verify(categoryService).createCategory(any(CategoryRequest.class));
         verifyNoMoreInteractions(categoryService);
     }
@@ -102,23 +101,23 @@ class CategoryControllerTest {
     @EmptySource
     @ValueSource(strings = {"{\"description\":\"category 1 description\"}"})
     void givenNoTitle_whenPostCategories_thenBadRequest(String body) throws Exception {
-
+        //when
         mockMvc.perform(post("/categories")
                 .contentType("application/json")
                 .content(body))
                 .andExpect(status().isBadRequest());
 
+        //then
         verifyNoInteractions(categoryService);
     }
 
     @Test
     void givenValidCategoryRequest_whenPutCategory_thenUpdated() throws Exception {
-
-        Category expected = new Category("category 1", "category 1 description");
-        expected.setId(1L);
-
+        //given
+        CategoryResponse expected = new CategoryResponse(1L, "category 1", "category 1 description");
         when(categoryService.update(anyLong(), any(CategoryRequest.class))).thenReturn(expected);
 
+        //when
         mockMvc.perform(put("/categories/{id}", 1)
                 .contentType("application/json")
                 .content("{\"title\":\"category 1\", \"description\":\"category 1 description\"}"))
@@ -128,6 +127,7 @@ class CategoryControllerTest {
                 .andExpect(jsonPath("$.title").value("category 1"))
                 .andExpect(jsonPath("$.description").value("category 1 description"));
 
+        //then
         verify(categoryService).update(anyLong(), any(CategoryRequest.class));
         verifyNoMoreInteractions(categoryService);
     }
@@ -136,46 +136,46 @@ class CategoryControllerTest {
     @EmptySource
     @ValueSource(strings = {"{\"description\":\"category 1 description\"}"})
     void givenNoTitle_whenPutCategory_thenBadRequest(String body) throws Exception {
-
+        //when
         mockMvc.perform(put("/categories/{id}", 2)
                 .contentType("application/json")
                 .content(body))
                 .andExpect(status().isBadRequest());
 
+        //then
         verifyNoInteractions(categoryService);
     }
 
     @Test
     void givenCategoryExists_whenDeleteCategory_thenNoContent() throws Exception {
-
+        //when
         mockMvc.perform(delete("/categories/{id}", 2))
                 .andExpect(status().isNoContent());
 
+        //then
         verify(categoryService).delete(2L, false);
         verifyNoMoreInteractions(categoryService);
     }
 
     @Test
     void givenCategoryExistsAnd_whenForcedDeleteCategory_thenNoContent() throws Exception {
-
+        //when
         mockMvc.perform(delete("/categories/{id}?forced={forced}", 2, true))
                 .andExpect(status().isNoContent());
 
+        //then
         verify(categoryService).delete(2L, true);
         verifyNoMoreInteractions(categoryService);
     }
 
     @Test
     void whenGetSubcategories_thenFoundAndSortedByTitle() throws Exception {
-
-        Category category1 = new Category("category 1", "category 1 description");
-        category1.setId(1L);
-
-        Category category2 = new Category("category 2", "category 2 description");
-        category2.setId(2L);
-
+        //given
+        CategoryResponse category1 = new CategoryResponse(1L, "category 1", "category 1 description");
+        CategoryResponse category2 = new CategoryResponse(2L, "category 2", "category 2 description");
         when(categoryService.findSubcategoriesByParentId(1L)).thenReturn(Arrays.asList(category2, category1));
 
+        //when
         mockMvc.perform(get("/categories/{id}/subcategories", 1)
                 .accept("application/json"))
                 .andExpect(status().isOk())
@@ -189,18 +189,18 @@ class CategoryControllerTest {
                 .andExpect(jsonPath("[1].title").value("category 2"))
                 .andExpect(jsonPath("[1].description").value("category 2 description"));
 
+        //then
         verify(categoryService).findSubcategoriesByParentId(1L);
         verifyNoMoreInteractions(categoryService);
     }
 
     @Test
     void givenValidCategoryRequest_whenPostSubcategories_thenCreated() throws Exception {
-
-        Category expected = new Category("category 1", "category 1 description");
-        expected.setId(3L);
-
+        //given
+        CategoryResponse expected = new CategoryResponse(3L, "category 1", "category 1 description");
         when(categoryService.createSubcategory(anyLong(), any(CategoryRequest.class))).thenReturn(expected);
 
+        //when
         mockMvc.perform(post("/categories/{id}/subcategories", 1)
                 .contentType("application/json")
                 .content("{\"title\":\"category 1\", \"description\":\"category 1 description\"}"))
@@ -211,6 +211,7 @@ class CategoryControllerTest {
                 .andExpect(jsonPath("$.title").value("category 1"))
                 .andExpect(jsonPath("$.description").value("category 1 description"));
 
+        //then
         verify(categoryService).createSubcategory(anyLong(), any(CategoryRequest.class));
         verifyNoMoreInteractions(categoryService);
     }
@@ -219,31 +220,34 @@ class CategoryControllerTest {
     @EmptySource
     @ValueSource(strings = {"{\"description\":\"category 1 description\"}"})
     void givenNoTitle_whenPostSubcategory_thenBadRequest(String body) throws Exception {
-
+        //when
         mockMvc.perform(post("/categories/{id}/subcategories", 1)
                 .contentType("application/json")
                 .content(body))
                 .andExpect(status().isBadRequest());
 
+        //then
         verifyNoInteractions(categoryService);
     }
 
     @Test
     void whenAddProduct_thenOk() throws Exception {
-
+        //when
         mockMvc.perform(post("/categories/{id}/products?code={code}", 1, "abc"))
                 .andExpect(status().isOk());
 
+        //then
         verify(categoryService).addProduct(1L, "abc");
         verifyNoMoreInteractions(categoryService);
     }
 
     @Test
     void whenDeleteProduct_thenOk() throws Exception {
-
+        //when
         mockMvc.perform(delete("/categories/{id}/products?code={code}", 1, "abc"))
                 .andExpect(status().isOk());
 
+        //then
         verify(categoryService).removeProduct(1L, "abc");
         verifyNoMoreInteractions(categoryService);
     }

@@ -8,15 +8,18 @@ import com.mikhailkarpov.eshop.productservice.messaging.message.OrderUpdatedMess
 import com.mikhailkarpov.eshop.productservice.service.OrderReservationService;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.Captor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.Mockito;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.verify;
 
 @ExtendWith(SpringExtension.class)
@@ -30,6 +33,10 @@ class OrderMessageConsumerTest {
 
     @InjectMocks
     private OrderMessageConsumer messageConsumer;
+
+
+    @Captor
+    private ArgumentCaptor<OrderUpdatedMessage> messageArgumentCaptor;
 
     @Test
     void givenOrderCreatedMessage_onConsumeMessage_thenOrderReservedAndMessageSent() throws OrderReservationException {
@@ -46,7 +53,9 @@ class OrderMessageConsumerTest {
 
         //then
         verify(orderReservationService).reserve(items);
-        verify(messagePublisher).send(new OrderUpdatedMessage(orderId, OrderStatus.CONFIRMED));
+        verify(messagePublisher).send(messageArgumentCaptor.capture());
+        assertEquals(orderId, messageArgumentCaptor.getValue().getOrderId());
+        assertEquals(OrderStatus.CONFIRMED, messageArgumentCaptor.getValue().getStatus());
     }
 
     @Test
@@ -58,13 +67,15 @@ class OrderMessageConsumerTest {
                 new OrderItem("xyz", 3)
         );
         OrderCreatedMessage orderCreatedMessage = new OrderCreatedMessage(orderId, items);
-        Mockito.doThrow(OrderReservationException.class).when(orderReservationService).reserve(items);
+        doThrow(OrderReservationException.class).when(orderReservationService).reserve(items);
 
         //when
         messageConsumer.onConsume(orderCreatedMessage);
 
         //then
         verify(orderReservationService).reserve(items);
-        verify(messagePublisher).send(new OrderUpdatedMessage(orderId, OrderStatus.REJECTED));
+        verify(messagePublisher).send(messageArgumentCaptor.capture());
+        assertEquals(orderId, messageArgumentCaptor.getValue().getOrderId());
+        assertEquals(OrderStatus.REJECTED, messageArgumentCaptor.getValue().getStatus());
     }
 }

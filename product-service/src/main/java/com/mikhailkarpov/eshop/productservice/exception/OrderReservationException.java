@@ -6,6 +6,10 @@ public class OrderReservationException extends Exception {
         super(message);
     }
 
+    public OrderReservationException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
     public OrderReservationException(Throwable cause) {
         super(cause);
     }

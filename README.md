@@ -9,3 +9,7 @@ Spring Cloud, Docker and Maven. Work in progress.
 <code>docker compose build</code>  
 <code>docker compose run --rm start-dependencies</code>  
 <code>docker compose up</code>
+
+Note that integration tests use reusable Testcontainers to 
+speed things up. You will have to manually remove the 
+containers after the integration tests are complete.

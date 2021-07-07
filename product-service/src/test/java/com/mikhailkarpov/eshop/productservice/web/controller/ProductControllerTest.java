@@ -3,12 +3,7 @@ package com.mikhailkarpov.eshop.productservice.web.controller;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mikhailkarpov.eshop.productservice.persistence.entity.Product;
 import com.mikhailkarpov.eshop.productservice.service.ProductService;
-import com.mikhailkarpov.eshop.productservice.web.dto.ProductRequest;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
-import org.junit.jupiter.params.provider.NullSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
@@ -17,10 +12,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.Arrays;
-import java.util.stream.Stream;
 
 import static org.hamcrest.Matchers.hasSize;
-import static org.junit.jupiter.params.provider.Arguments.of;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -64,8 +57,8 @@ class ProductControllerTest {
                 .andExpect(jsonPath("$.result[1].price").value(210))
                 .andExpect(jsonPath("$.result[1].quantity").value(15))
                 .andExpect(jsonPath("$.page").value(0))
-                .andExpect(jsonPath("$.total_results").value(2))
-                .andExpect(jsonPath("$.total_pages").value(1));
+                .andExpect(jsonPath("$.totalResults").value(2))
+                .andExpect(jsonPath("$.totalPages").value(1));
 
         verify(productService).findAll(any(), any());
         verifyNoMoreInteractions(productService);
@@ -93,8 +86,8 @@ class ProductControllerTest {
                 .andExpect(jsonPath("$.result[1].price").value(210))
                 .andExpect(jsonPath("$.result[1].quantity").value(15))
                 .andExpect(jsonPath("$.page").value(1))
-                .andExpect(jsonPath("$.total_results").value(4))
-                .andExpect(jsonPath("$.total_pages").value(2));
+                .andExpect(jsonPath("$.totalResults").value(4))
+                .andExpect(jsonPath("$.totalPages").value(2));
 
         verify(productService).findAll(any(), any());
         verifyNoMoreInteractions(productService);
@@ -150,21 +143,6 @@ class ProductControllerTest {
         verifyNoMoreInteractions(productService);
     }
 
-    @ParameterizedTest
-    @NullSource
-    @MethodSource("getInvalidProducts")
-    void givenInvalidRequest_whenPostProducts_thenBadRequest(ProductRequest request) throws Exception {
-
-        String requestBody = objectMapper.writeValueAsString(request);
-
-        mockMvc.perform(post("/products")
-                .contentType("application/json")
-                .content(requestBody))
-                .andExpect(status().isBadRequest());
-
-        verifyNoInteractions(productService);
-    }
-
     // ---------------- PUT /products/{code}
 
     @Test
@@ -194,21 +172,6 @@ class ProductControllerTest {
         verifyNoMoreInteractions(productService);
     }
 
-    @ParameterizedTest
-    @NullSource
-    @MethodSource("getInvalidProducts")
-    void givenInvalidProductRequest_whenPutProducts_thenBadRequest(ProductRequest request) throws Exception {
-
-        String requestBody = objectMapper.writeValueAsString(request);
-
-        mockMvc.perform(put("/products/abc")
-                .contentType("application/json")
-                .content(requestBody))
-                .andExpect(status().isBadRequest());
-
-        verifyNoInteractions(productService);
-    }
-
     // ---------------- DELETE /products/{code}
 
     @Test
@@ -219,20 +182,5 @@ class ProductControllerTest {
 
         verify(productService).delete("abc");
         verifyNoMoreInteractions(productService);
-    }
-
-    // ---------------- HELPERS
-
-    private static Stream<Arguments> getInvalidProducts() {
-        return Stream.of(
-                of(new ProductRequest(null, "product 1", "description 1", 1100, 15, 0)),
-                of(new ProductRequest("abc", null, "description 1", 1100, 15, 0)),
-                of(new ProductRequest("abc", "product 1", null, 1100, 15, 0)),
-                of(new ProductRequest("abc", "product 1", "description 1", null, 15, 0)),
-                of(new ProductRequest("abc", "product 1", "description 1", 1100, null, 0)),
-                of(new ProductRequest("abc", "product 1", "description 1", 0, 15, 0)),
-                of(new ProductRequest("abc", "product 1", "description 1", 1100, -1, 0)),
-                of(new ProductRequest("abc", "product 1", "description 1", 1100, 1, -1))
-        );
     }
 }

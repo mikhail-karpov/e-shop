@@ -47,7 +47,7 @@ class ProductServiceImplTest {
     void givenRequest_whenCreateProduct_thenSaved() {
         //given
         ProductRequest request =
-                new ProductRequest("abc", "product", "description", 1050, 16, 0);
+                new ProductRequest("abc", "product", "description", 1050, 16);
         when(productRepository.existsById("abc")).thenReturn(false);
         when(productRepository.save(any(Product.class))).thenReturn(expectedProduct);
 
@@ -68,7 +68,7 @@ class ProductServiceImplTest {
         //given
         when(productRepository.existsById("abc")).thenReturn(true);
         ProductRequest request =
-                new ProductRequest("abc", "product", "description", 1050, 16, 0);
+                new ProductRequest("abc", "product", "description", 1050, 16);
 
         //when
         assertThrows(ProductDuplicateCodeException.class, () -> productService.create(request));
@@ -155,7 +155,7 @@ class ProductServiceImplTest {
 
         //when
         ProductRequest request =
-                new ProductRequest("abc", "update", "update description", 100, 6, 2);
+                new ProductRequest("abc", "update", "update description", 100, 6);
         Product updatedProduct = productService.update("abc", request);
 
         //then

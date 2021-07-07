@@ -46,7 +46,6 @@ class OrderMessagePublisherTest {
         messagePublisher.send(new OrderUpdatedMessage(orderId, orderStatus));
 
         //then
-
         verify(rabbitTemplate).convertAndSend(eq("topic"), eq("key"), messageCaptor.capture());
         assertEquals(orderId, messageCaptor.getValue().getOrderId());
         assertEquals(orderStatus, messageCaptor.getValue().getStatus());

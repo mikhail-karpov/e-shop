@@ -3,6 +3,7 @@ package com.mikhailkarpov.eshop.productservice.web.controller;
 import com.mikhailkarpov.eshop.productservice.persistence.entity.Category;
 import com.mikhailkarpov.eshop.productservice.service.CategoryService;
 import com.mikhailkarpov.eshop.productservice.web.dto.CategoryRequest;
+import com.mikhailkarpov.eshop.productservice.web.dto.CategoryResponse;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -25,32 +26,32 @@ public class CategoryController {
     private final CategoryService categoryService;
 
     @GetMapping
-    public List<Category> findParentCategories() {
+    public List<CategoryResponse> findParentCategories() {
 
         return categoryService.findParentCategories()
                 .stream()
-                .sorted(Comparator.comparing(Category::getTitle))
+                .sorted(Comparator.comparing(CategoryResponse::getTitle))
                 .collect(Collectors.toList());
     }
 
     @GetMapping("/{id}")
-    public Category findById(@PathVariable Long id) {
+    public CategoryResponse findById(@PathVariable Long id) {
 
         return categoryService.findById(id);
     }
 
     @PostMapping
-    public ResponseEntity<Category> create(@Valid @RequestBody CategoryRequest request,
+    public ResponseEntity<CategoryResponse> create(@Valid @RequestBody CategoryRequest request,
                                            UriComponentsBuilder uriComponentsBuilder) {
 
-        Category category = categoryService.createCategory(request);
+        CategoryResponse category = categoryService.createCategory(request);
         URI location = uriComponentsBuilder.path("/categories/{id}").build(category.getId());
 
         return ResponseEntity.created(location).body(category);
     }
 
     @PutMapping("/{id}")
-    public Category update(@PathVariable Long id, @Valid @RequestBody CategoryRequest update) {
+    public CategoryResponse update(@PathVariable Long id, @Valid @RequestBody CategoryRequest update) {
 
         return categoryService.update(id, update);
     }
@@ -64,20 +65,20 @@ public class CategoryController {
     }
 
     @GetMapping("/{id}/subcategories")
-    public List<Category> findSubcategoriesByParentId(@PathVariable("id") Long id) {
+    public List<CategoryResponse> findSubcategoriesByParentId(@PathVariable("id") Long id) {
 
         return categoryService.findSubcategoriesByParentId(id)
                 .stream()
-                .sorted(Comparator.comparing(Category::getTitle))
+                .sorted(Comparator.comparing(CategoryResponse::getTitle))
                 .collect(Collectors.toList());
     }
 
     @PostMapping("/{id}/subcategories")
-    public ResponseEntity<Category> createSubcategory(@PathVariable("id") Long parentId,
+    public ResponseEntity<CategoryResponse> createSubcategory(@PathVariable("id") Long parentId,
                                                       @Valid @RequestBody CategoryRequest request,
                                                       UriComponentsBuilder uriComponentsBuilder) {
 
-        Category subcategory = categoryService.createSubcategory(parentId, request);
+        CategoryResponse subcategory = categoryService.createSubcategory(parentId, request);
         URI location = uriComponentsBuilder.path("/categories/{id}").build(subcategory.getId());
 
         return ResponseEntity.created(location).body(subcategory);

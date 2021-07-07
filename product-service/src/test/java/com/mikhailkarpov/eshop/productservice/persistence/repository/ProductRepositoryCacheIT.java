@@ -2,7 +2,6 @@ package com.mikhailkarpov.eshop.productservice.persistence.repository;
 
 import com.mikhailkarpov.eshop.productservice.AbstractIT;
 import com.mikhailkarpov.eshop.productservice.persistence.entity.Product;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -26,11 +25,6 @@ class ProductRepositoryCacheIT extends AbstractIT {
     private final String cache = "product";
     private final String code = "macbook";
     private final String notFoundProductCode = UUID.randomUUID().toString();
-
-    @BeforeEach
-    void cleanUpCache() {
-        cacheManager.getCache(cache).invalidate();
-    }
 
     @Test
     void givenProduct_whenFindById_thenCached() {

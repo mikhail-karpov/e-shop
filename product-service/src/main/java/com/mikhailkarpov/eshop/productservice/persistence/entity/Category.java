@@ -3,6 +3,7 @@ package com.mikhailkarpov.eshop.productservice.persistence.entity;
 import lombok.NoArgsConstructor;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -12,7 +13,9 @@ import static javax.persistence.FetchType.LAZY;
 @Entity(name = "Category")
 @Table(name = "category")
 @NoArgsConstructor
-public class Category {
+public class Category implements Serializable {
+
+    private static final long serialVersionUID = -980204763778840631L;
 
     @Id
     @SequenceGenerator(name = "category_id_seq", sequenceName = "category_id_seq", allocationSize = 1)
@@ -29,10 +32,10 @@ public class Category {
     @JoinColumn(name = "parent_id")
     private Category parent;
 
-    @OneToMany(fetch = LAZY, orphanRemoval = true, mappedBy = "parent")
+    @OneToMany(fetch = LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE}, orphanRemoval = true, mappedBy = "parent")
     private final Set<Category> subcategories = new HashSet<>();
 
-    @OneToMany(fetch = LAZY, orphanRemoval = true, mappedBy = "category")
+    @OneToMany(fetch = LAZY, cascade = {CascadeType.PERSIST, CascadeType.MERGE}, orphanRemoval = true, mappedBy = "category")
     private final Set<Product> products = new HashSet<>();
 
     public Category(String title, String description) {

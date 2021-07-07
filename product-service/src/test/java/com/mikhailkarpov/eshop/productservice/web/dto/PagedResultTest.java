@@ -44,8 +44,8 @@ class PagedResultTest {
                 "\"price\":2000,\"quantity\":22}" +
                 "]," +
                 "\"page\":9," +
-                "\"total_results\":20," +
-                "\"total_pages\":10" +
+                "\"totalResults\":20," +
+                "\"totalPages\":10" +
                 "}";
 
         assertThat(tester.write(pagedResult)).isEqualToJson(json);

@@ -1,10 +1,9 @@
 package com.mikhailkarpov.eshop.productservice.messaging;
 
-import com.mikhailkarpov.eshop.productservice.AbstractMessagingIT;
+import com.mikhailkarpov.eshop.productservice.AbstractIT;
 import com.mikhailkarpov.eshop.productservice.config.OrderMessagingProperties;
 import com.mikhailkarpov.eshop.productservice.messaging.dto.OrderStatus;
 import com.mikhailkarpov.eshop.productservice.messaging.message.OrderUpdatedMessage;
-import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,8 +12,11 @@ import org.springframework.core.ParameterizedTypeReference;
 
 import java.util.UUID;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
-class OrderMessagePublisherIT extends AbstractMessagingIT {
+class OrderMessagePublisherIT extends AbstractIT {
 
     @Autowired
     private OrderMessagePublisher messagePublisher;
@@ -26,7 +28,7 @@ class OrderMessagePublisherIT extends AbstractMessagingIT {
     private OrderMessagingProperties messagingProperties;
 
     @Test
-    void givenOrderUpdatedMessage_whenSendMessage_thenMessageSent() {
+    void test() {
         //given
         UUID orderId = UUID.randomUUID();
         OrderStatus status = OrderStatus.REJECTED;
@@ -35,11 +37,11 @@ class OrderMessagePublisherIT extends AbstractMessagingIT {
         messagePublisher.send(new OrderUpdatedMessage(orderId, status));
         ParameterizedTypeReference<OrderUpdatedMessage> reference = new ParameterizedTypeReference<OrderUpdatedMessage>() {
         };
-        OrderUpdatedMessage orderUpdatedMessage =
-                rabbitTemplate.receiveAndConvert(messagingProperties.getUpdatedQueue(), reference);
+        OrderUpdatedMessage message = rabbitTemplate.receiveAndConvert(messagingProperties.getUpdatedQueue(), reference);
 
         //then
-        Assertions.assertThat(orderUpdatedMessage.getOrderId()).isEqualTo(orderId);
-        Assertions.assertThat(orderUpdatedMessage.getStatus()).isEqualTo(status);
+        assertNotNull(message);
+        assertEquals(orderId, message.getOrderId());
+        assertEquals(status, message.getStatus());
     }
 }

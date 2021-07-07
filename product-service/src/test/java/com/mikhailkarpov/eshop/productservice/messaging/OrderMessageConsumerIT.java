@@ -1,30 +1,23 @@
 package com.mikhailkarpov.eshop.productservice.messaging;
 
-import com.mikhailkarpov.eshop.productservice.AbstractMessagingIT;
+import com.mikhailkarpov.eshop.productservice.AbstractIT;
 import com.mikhailkarpov.eshop.productservice.config.OrderMessagingProperties;
-import com.mikhailkarpov.eshop.productservice.messaging.dto.OrderItem;
 import com.mikhailkarpov.eshop.productservice.messaging.dto.OrderStatus;
-import com.mikhailkarpov.eshop.productservice.messaging.message.OrderCreatedMessage;
 import com.mikhailkarpov.eshop.productservice.messaging.message.OrderUpdatedMessage;
-import com.mikhailkarpov.eshop.productservice.persistence.entity.Product;
-import com.mikhailkarpov.eshop.productservice.persistence.repository.ProductRepository;
-import org.awaitility.Awaitility;
+import com.mikhailkarpov.eshop.productservice.service.ProductService;
+import com.mikhailkarpov.eshop.productservice.web.dto.ProductRequest;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.springframework.amqp.core.MessageBuilder;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.ParameterizedTypeReference;
 
-import java.util.Collections;
-import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.Callable;
-import java.util.concurrent.TimeUnit;
-
-import static org.hamcrest.Matchers.is;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
-class OrderMessageConsumerIT extends AbstractMessagingIT {
+class OrderMessageConsumerIT extends AbstractIT {
 
     @Autowired
     private RabbitTemplate rabbitTemplate;
@@ -33,79 +26,96 @@ class OrderMessageConsumerIT extends AbstractMessagingIT {
     private OrderMessagingProperties messagingProperties;
 
     @Autowired
-    ProductRepository productRepository;
+    private ProductService productService;
+
+    private final ParameterizedTypeReference<OrderUpdatedMessage> reference
+            = new ParameterizedTypeReference<OrderUpdatedMessage>() {
+    };
 
     @Test
-    void givenProductAvailableForReservation_whenReserveOrder_thenProductReservedAndMessageSent() {
+    void givenProductAvailableForReservation_whenOrderCreatedMessageReceived_thenProductReservedAndOrderConfirmedMessageSent() {
         //given
         String code = UUID.randomUUID().toString();
-        Product request = Product.builder()
-                .code(code)
-                .title("title")
-                .description("description")
-                .price(100)
-                .quantity(5)
-                .build();
-        productRepository.save(request);
+        ProductRequest request = new ProductRequest(code, "title", "desc", 100, 5);
+        productService.create(request);
 
         //when
         UUID orderId = UUID.randomUUID();
-        List<OrderItem> items = Collections.singletonList(new OrderItem(code, 4));
-        String topicExchange = messagingProperties.getTopicExchange();
+        String exchange = messagingProperties.getTopicExchange();
         String routingKey = messagingProperties.getCreatedRoutingKey();
-
-        rabbitTemplate.convertAndSend(topicExchange, routingKey, new OrderCreatedMessage(orderId, items));
+        String messageBody = "{" +
+                "\"orderId\": \"" + orderId + "\"," +
+                "\"items\": [" +
+                "{\"code\": \"" + code + "\", \"quantity\": 4}" +
+                "]" +
+                "}";
+        rabbitTemplate.convertAndSend(exchange, routingKey, MessageBuilder.withBody(messageBody.getBytes()).build());
 
         //then
-        Awaitility.await()
-                .atMost(2500L, TimeUnit.MILLISECONDS)
-                .until(() -> productRepository.findById(code).get().getReserved(), is(4));
-        Awaitility.await()
-                .atMost(2500L, TimeUnit.MILLISECONDS)
-                .until(orderUpdatedMessageSent(orderId, OrderStatus.CONFIRMED), is(true));
+        OrderUpdatedMessage message =
+                rabbitTemplate.receiveAndConvert(messagingProperties.getUpdatedQueue(), 5000L, reference);
+
+        Assertions.assertNotNull(message);
+        Assertions.assertEquals(orderId, message.getOrderId());
+        Assertions.assertEquals(OrderStatus.CONFIRMED, message.getStatus());
+        Assertions.assertEquals(4, productService.findByCode(code).getReserved());
     }
 
     @Test
-    void givenProductNotAvailableForReservation_whenReserveOrder_thenProductNotReservedAndMessageSent() {
+    void givenNotEnoughProduct_whenOrderCreated_thenProductNotReservedAndOrderRejectedMessageSent() {
         //given
-        String code = UUID.randomUUID().toString();
-        Product request = Product.builder()
-                .code(code)
-                .title("title")
-                .description("description")
-                .price(100)
-                .quantity(5)
-                .build();
-        request.setReserved(2);
-        productRepository.save(request);
+        String code1 = UUID.randomUUID().toString();
+        ProductRequest request = new ProductRequest(code1, "title", "desc", 100, 5);
+        productService.create(request);
+
+        String code2 = UUID.randomUUID().toString();
+        request = new ProductRequest(code2, "title 2", "desc", 100, 15);
+        productService.create(request);
 
         //when
         UUID orderId = UUID.randomUUID();
-        List<OrderItem> items = Collections.singletonList(new OrderItem(code, 4));
-        String topicExchange = messagingProperties.getTopicExchange();
+        String exchange = messagingProperties.getTopicExchange();
         String routingKey = messagingProperties.getCreatedRoutingKey();
-
-        rabbitTemplate.convertAndSend(topicExchange, routingKey, new OrderCreatedMessage(orderId, items));
+        String messageBody = "{" +
+                "\"orderId\": \"" + orderId + "\"," +
+                "\"items\": [" +
+                "{\"code\": \"" + code1 + "\", \"quantity\": 4}," +
+                "{\"code\": \"" + code2 + "\", \"quantity\": 24}" +
+                "]" +
+                "}";
+        rabbitTemplate.convertAndSend(exchange, routingKey, MessageBuilder.withBody(messageBody.getBytes()).build());
 
         //then
-        Awaitility.await()
-                .atMost(2500L, TimeUnit.MILLISECONDS)
-                .until(() -> productRepository.findById(code).get().getReserved(), is(2));
-        Awaitility.await()
-                .atMost(2500L, TimeUnit.MILLISECONDS)
-                .until(orderUpdatedMessageSent(orderId, OrderStatus.REJECTED), is(true));
+        OrderUpdatedMessage message =
+                rabbitTemplate.receiveAndConvert(messagingProperties.getUpdatedQueue(), 5000L, reference);
+
+        Assertions.assertNotNull(message);
+        Assertions.assertEquals(orderId, message.getOrderId());
+        Assertions.assertEquals(OrderStatus.REJECTED, message.getStatus());
+        Assertions.assertEquals(0, productService.findByCode(code1).getReserved());
+        Assertions.assertEquals(0, productService.findByCode(code2).getReserved());
     }
 
-    private Callable<Boolean> orderUpdatedMessageSent(UUID orderId, OrderStatus status) {
+    @Test
+    void givenNoProduct_whenOrderCreated_thenOrderRejectedMessageSent() {
+        //when
+        UUID orderId = UUID.randomUUID();
+        String exchange = messagingProperties.getTopicExchange();
+        String routingKey = messagingProperties.getCreatedRoutingKey();
+        String messageBody = "{" +
+                "\"orderId\": \"" + orderId + "\"," +
+                "\"items\": [" +
+                "{\"code\": \"" + UUID.randomUUID() + "\", \"quantity\": 4}" +
+                "]" +
+                "}";
+        rabbitTemplate.convertAndSend(exchange, routingKey, MessageBuilder.withBody(messageBody.getBytes()).build());
 
-        String orderUpdatedQueue = messagingProperties.getUpdatedQueue();
-        ParameterizedTypeReference<OrderUpdatedMessage> reference =
-                new ParameterizedTypeReference<OrderUpdatedMessage>() {
-                };
-        OrderUpdatedMessage orderUpdatedMessage = rabbitTemplate.receiveAndConvert(orderUpdatedQueue, reference);
+        //then
+        OrderUpdatedMessage message
+                = rabbitTemplate.receiveAndConvert(messagingProperties.getUpdatedQueue(), 5000L, reference);
 
-        return () -> orderUpdatedMessage != null &&
-                orderUpdatedMessage.getOrderId().equals(orderId) &&
-                orderUpdatedMessage.getStatus() == status;
+        Assertions.assertNotNull(message);
+        Assertions.assertEquals(orderId, message.getOrderId());
+        Assertions.assertEquals(OrderStatus.REJECTED, message.getStatus());
     }
 }

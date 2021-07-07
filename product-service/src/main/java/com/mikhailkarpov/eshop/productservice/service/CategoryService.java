@@ -2,26 +2,27 @@ package com.mikhailkarpov.eshop.productservice.service;
 
 import com.mikhailkarpov.eshop.productservice.persistence.entity.Category;
 import com.mikhailkarpov.eshop.productservice.web.dto.CategoryRequest;
+import com.mikhailkarpov.eshop.productservice.web.dto.CategoryResponse;
 
 import java.util.List;
 
 public interface CategoryService {
 
-    Category createCategory(CategoryRequest request);
+    CategoryResponse createCategory(CategoryRequest request);
 
-    Category createSubcategory(Long parentId, CategoryRequest request);
+    CategoryResponse createSubcategory(Long parentId, CategoryRequest request);
 
     void delete(Long id);
 
-    void delete(Long id, Boolean forced);
+    void delete(Long id, boolean forced);
 
-    Category findById(Long id);
+    CategoryResponse findById(Long id);
 
-    List<Category> findParentCategories();
+    List<CategoryResponse> findParentCategories();
 
-    List<Category> findSubcategoriesByParentId(Long id);
+    List<CategoryResponse> findSubcategoriesByParentId(Long id);
 
-    Category update(Long id, CategoryRequest update);
+    CategoryResponse update(Long id, CategoryRequest update);
 
     void addProduct(Long id, String productCode);
 
