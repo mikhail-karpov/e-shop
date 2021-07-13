@@ -1,11 +1,9 @@
 package com.mikhailkarpov.eshop.productservice.web.controller;
 
-import com.mikhailkarpov.eshop.productservice.persistence.entity.Category;
 import com.mikhailkarpov.eshop.productservice.service.CategoryService;
 import com.mikhailkarpov.eshop.productservice.web.dto.CategoryRequest;
 import com.mikhailkarpov.eshop.productservice.web.dto.CategoryResponse;
-import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,10 +15,9 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 
-@Slf4j
 @RestController
 @RequestMapping("/categories")
-@AllArgsConstructor
+@RequiredArgsConstructor
 public class CategoryController {
 
     private final CategoryService categoryService;
@@ -42,7 +39,7 @@ public class CategoryController {
 
     @PostMapping
     public ResponseEntity<CategoryResponse> create(@Valid @RequestBody CategoryRequest request,
-                                           UriComponentsBuilder uriComponentsBuilder) {
+                                                   UriComponentsBuilder uriComponentsBuilder) {
 
         CategoryResponse category = categoryService.createCategory(request);
         URI location = uriComponentsBuilder.path("/categories/{id}").build(category.getId());
@@ -75,8 +72,8 @@ public class CategoryController {
 
     @PostMapping("/{id}/subcategories")
     public ResponseEntity<CategoryResponse> createSubcategory(@PathVariable("id") Long parentId,
-                                                      @Valid @RequestBody CategoryRequest request,
-                                                      UriComponentsBuilder uriComponentsBuilder) {
+                                                              @Valid @RequestBody CategoryRequest request,
+                                                              UriComponentsBuilder uriComponentsBuilder) {
 
         CategoryResponse subcategory = categoryService.createSubcategory(parentId, request);
         URI location = uriComponentsBuilder.path("/categories/{id}").build(subcategory.getId());

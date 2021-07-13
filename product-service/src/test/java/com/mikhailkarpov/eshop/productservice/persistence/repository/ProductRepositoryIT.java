@@ -1,6 +1,6 @@
 package com.mikhailkarpov.eshop.productservice.persistence.repository;
 
-import com.mikhailkarpov.eshop.productservice.DatabaseIT;
+import com.mikhailkarpov.eshop.productservice.config.DatabaseIT;
 import com.mikhailkarpov.eshop.productservice.persistence.entity.Category;
 import com.mikhailkarpov.eshop.productservice.persistence.entity.Product;
 import org.junit.jupiter.api.Test;

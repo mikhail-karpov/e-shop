@@ -1,4 +1,4 @@
-package com.mikhailkarpov.eshop.productservice;
+package com.mikhailkarpov.eshop.productservice.config;
 
 import org.flywaydb.core.Flyway;
 import org.junit.jupiter.api.BeforeEach;

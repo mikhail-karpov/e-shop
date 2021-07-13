@@ -1,4 +1,4 @@
-package com.mikhailkarpov.eshop.productservice;
+package com.mikhailkarpov.eshop.productservice.config;
 
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;

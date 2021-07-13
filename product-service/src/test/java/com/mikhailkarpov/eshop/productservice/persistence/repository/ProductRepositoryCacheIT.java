@@ -1,6 +1,6 @@
 package com.mikhailkarpov.eshop.productservice.persistence.repository;
 
-import com.mikhailkarpov.eshop.productservice.AbstractIT;
+import com.mikhailkarpov.eshop.productservice.config.AbstractIT;
 import com.mikhailkarpov.eshop.productservice.persistence.entity.Product;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
