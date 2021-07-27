@@ -14,6 +14,7 @@
 	<properties>
 		<java.version>1.8</java.version>
 		<testcontainers.version>1.15.3</testcontainers.version>
+		<testcontainers-keycloak.version>1.6.0</testcontainers-keycloak.version>
 	</properties>
 
 	<dependencies>
@@ -45,6 +46,12 @@
 		<dependency>
 			<groupId>org.flywaydb</groupId>
 			<artifactId>flyway-core</artifactId>
+		</dependency>
+
+		<!-- Security -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-oauth2-resource-server</artifactId>
 		</dependency>
 
 		<!-- Messaging -->
@@ -106,6 +113,16 @@
 			<groupId>org.awaitility</groupId>
 			<artifactId>awaitility</artifactId>
 			<version>3.0.0</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.security</groupId>
+			<artifactId>spring-security-test</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.github.dasniko</groupId>
+			<artifactId>testcontainers-keycloak</artifactId>
+			<version>${testcontainers-keycloak.version}</version>
 			<scope>test</scope>
 		</dependency>
 

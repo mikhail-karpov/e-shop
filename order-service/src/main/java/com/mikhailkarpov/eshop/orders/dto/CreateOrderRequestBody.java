@@ -10,7 +10,7 @@ import java.util.List;
 
 @Data
 @NoArgsConstructor
-public class CreateOrderRequest {
+public class CreateOrderRequestBody {
 
     @NotEmpty
     private List<@Valid OrderItemDTO> items;

@@ -23,6 +23,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.util.*;
 
+import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -57,7 +58,7 @@ class OrderServiceImplTest {
     @Test
     void givenRequest_whenCreateOrder_thenUUIDReturned() {
         //given
-        CreateOrderRequest request = new CreateOrderRequest();
+        CreateOrderRequestBody request = new CreateOrderRequestBody();
         request.setShippingAddress(addressDTO);
         request.setItems(itemDTOList);
 
@@ -85,7 +86,7 @@ class OrderServiceImplTest {
         PageRequest pageRequest = PageRequest.of(1, 2);
 
         when(orderRepository.findAll(any(Specification.class), eq(pageRequest)))
-                .thenReturn(new PageImpl(Arrays.asList(order), pageRequest, 3));
+                .thenReturn(new PageImpl(Collections.singletonList(order), pageRequest, 3));
 
         //when
         PagedResult<OrderDTO> pagedResult = orderService.searchOrders(request, pageRequest);
@@ -95,7 +96,7 @@ class OrderServiceImplTest {
         assertEquals(1, ordersDto.size());
         assertEquals("customerId", ordersDto.get(0).getCustomerId());
         assertEquals(OrderStatus.ACCEPTED, ordersDto.get(0).getStatus());
-        Assertions.assertNotNull(ordersDto.get(0).getShippingAddress());
+        assertNotNull(ordersDto.get(0).getShippingAddress());
         assertEquals(order.getId(), ordersDto.get(0).getId());
 
         assertEquals(1, pagedResult.getPage());
@@ -110,7 +111,7 @@ class OrderServiceImplTest {
         //given
         PageRequest pageRequest = PageRequest.of(1, 2);
         when(orderRepository.findAll(pageRequest))
-                .thenReturn(new PageImpl<>(Arrays.asList(order), pageRequest, 3));
+                .thenReturn(new PageImpl<>(Collections.singletonList(order), pageRequest, 3));
 
         //when
         PagedResult<OrderDTO> pagedResult = orderService.findAll(pageRequest);
@@ -120,7 +121,7 @@ class OrderServiceImplTest {
         assertEquals(1, ordersDto.size());
         assertEquals("customerId", ordersDto.get(0).getCustomerId());
         assertEquals(OrderStatus.ACCEPTED, ordersDto.get(0).getStatus());
-        Assertions.assertNotNull(ordersDto.get(0).getShippingAddress());
+        assertNotNull(ordersDto.get(0).getShippingAddress());
         assertEquals(order.getId(), ordersDto.get(0).getId());
 
         assertEquals(1, pagedResult.getPage());
@@ -137,13 +138,13 @@ class OrderServiceImplTest {
         when(orderRepository.findById(id)).thenReturn(Optional.of(order));
 
         //when
-        OrderWithItemsDTO found = orderService.findOrderById(id);
+        OrderDTO found = orderService.findOrderById(id);
 
         //then
         assertEquals("customerId", found.getCustomerId());
         assertEquals(id, found.getId());
         assertEquals(OrderStatus.ACCEPTED, found.getStatus());
-        Assertions.assertNotNull(found.getShippingAddress());
+        assertNotNull(found.getShippingAddress());
         assertEquals(1, found.getItems().size());
         assertEquals("abc", found.getItems().get(0).getCode());
         assertEquals(5, found.getItems().get(0).getQuantity());
@@ -158,7 +159,7 @@ class OrderServiceImplTest {
         when(orderRepository.findById(id)).thenReturn(Optional.empty());
 
         //when
-        Assertions.assertThrows(OrderNotFoundException.class, () -> orderService.findOrderById(id));
+        assertThrows(OrderNotFoundException.class, () -> orderService.findOrderById(id));
 
         verify(orderRepository).findById(id);
     }
@@ -173,7 +174,7 @@ class OrderServiceImplTest {
         orderService.updateOrderStatus(id, OrderStatus.REJECTED);
 
         //then
-        Assertions.assertEquals(OrderStatus.REJECTED, order.getStatus());
+        assertEquals(OrderStatus.REJECTED, order.getStatus());
         verify(orderRepository).findById(id);
 
         order.setStatus(OrderStatus.ACCEPTED);

@@ -16,12 +16,18 @@ public class OrderDTO {
     private String customerId;
     private OrderStatus status;
     private AddressDTO shippingAddress;
+    private List<OrderItemDTO> items;
 
     @Builder
-    public OrderDTO(UUID id, String customerId, OrderStatus status, AddressDTO shippingAddress) {
+    public OrderDTO(UUID id,
+                    String customerId,
+                    OrderStatus status,
+                    AddressDTO shippingAddress,
+                    List<OrderItemDTO> items) {
         this.id = id;
         this.customerId = customerId;
         this.status = status;
         this.shippingAddress = shippingAddress;
+        this.items = items;
     }
 }
