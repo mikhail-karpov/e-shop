@@ -71,16 +71,6 @@ services:
     ports:
     - 5432:5432
 
-#  shopping-cart-service:
-#    build: ./shopping-cart-service
-#    container_name: shopping-cart-service
-#    depends_on:
-#      - config
-#    environment:
-#      - CONFIG_URI=http://config:8888
-#      - CONFIG_PASSWORD=${CONFIG_PASSWORD}
-#      - SPRING_PROFILES_ACTIVE=dev
-
   order-service:
     build: ./order-service
     container_name: order-service
