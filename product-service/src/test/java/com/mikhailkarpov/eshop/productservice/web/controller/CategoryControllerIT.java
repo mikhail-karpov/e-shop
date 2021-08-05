@@ -1,6 +1,6 @@
 package com.mikhailkarpov.eshop.productservice.web.controller;
 
-import com.mikhailkarpov.eshop.productservice.config.AbstractIT;
+import com.mikhailkarpov.eshop.productservice.AbstractIT;
 import com.mikhailkarpov.eshop.productservice.persistence.entity.Category;
 import com.mikhailkarpov.eshop.productservice.web.dto.CategoryRequest;
 import com.mikhailkarpov.eshop.productservice.web.dto.CategoryResponse;

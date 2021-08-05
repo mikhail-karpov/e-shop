@@ -1,12 +1,11 @@
 package com.mikhailkarpov.eshop.productservice.web.controller;
 
-import com.mikhailkarpov.eshop.productservice.config.AbstractIT;
+import com.mikhailkarpov.eshop.productservice.AbstractIT;
 import com.mikhailkarpov.eshop.productservice.persistence.entity.Product;
 import com.mikhailkarpov.eshop.productservice.web.dto.PagedResult;
 import com.mikhailkarpov.eshop.productservice.web.dto.ProductRequest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.core.ParameterizedTypeReference;

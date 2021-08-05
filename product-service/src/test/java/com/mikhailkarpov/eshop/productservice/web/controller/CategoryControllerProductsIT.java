@@ -1,6 +1,6 @@
 package com.mikhailkarpov.eshop.productservice.web.controller;
 
-import com.mikhailkarpov.eshop.productservice.config.AbstractIT;
+import com.mikhailkarpov.eshop.productservice.AbstractIT;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;

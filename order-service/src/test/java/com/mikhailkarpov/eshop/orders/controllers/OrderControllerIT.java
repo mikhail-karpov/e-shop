@@ -2,7 +2,7 @@ package com.mikhailkarpov.eshop.orders.controllers;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.mikhailkarpov.eshop.orders.config.AbstractIT;
+import com.mikhailkarpov.eshop.orders.AbstractIT;
 import com.mikhailkarpov.eshop.orders.dto.AddressDTO;
 import com.mikhailkarpov.eshop.orders.dto.CreateOrderRequestBody;
 import com.mikhailkarpov.eshop.orders.dto.OrderItemDTO;

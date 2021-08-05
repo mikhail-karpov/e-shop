@@ -1,6 +1,6 @@
 package com.mikhailkarpov.eshop.orders.messaging;
 
-import com.mikhailkarpov.eshop.orders.config.AbstractIT;
+import com.mikhailkarpov.eshop.orders.AbstractIT;
 import com.mikhailkarpov.eshop.orders.config.OrderMessagingProperties;
 import com.mikhailkarpov.eshop.orders.persistence.entities.Order;
 import com.mikhailkarpov.eshop.orders.persistence.entities.OrderItem;

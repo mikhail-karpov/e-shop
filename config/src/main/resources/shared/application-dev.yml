@@ -5,6 +5,12 @@ eureka:
     serviceUrl:
       defaultZone: http://discovery-service:8761/eureka/
 
+app:
+  security:
+    oauth2:
+      jwt:
+        issuer-uri: http://keycloak:8080/auth/realms/master
+
 spring:
   rabbitmq:
     host: rabbitmq

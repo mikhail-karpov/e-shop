@@ -1,11 +1,10 @@
 package com.mikhailkarpov.eshop.productservice.web.controller;
 
-import com.mikhailkarpov.eshop.productservice.config.AbstractIT;
+import com.mikhailkarpov.eshop.productservice.AbstractIT;
 import com.mikhailkarpov.eshop.productservice.web.dto.CategoryRequest;
 import com.mikhailkarpov.eshop.productservice.web.dto.CategoryResponse;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpEntity;

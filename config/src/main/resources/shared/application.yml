@@ -7,6 +7,11 @@ app:
       createdRoutingKey: order.event.created
       updatedRoutingKey: order.event.updated
 
+  security:
+    oauth2:
+      jwt:
+        issuer-uri: http://localhost:8080/auth/realms/master
+
 eureka:
   instance:
     prefer-ip-address: true

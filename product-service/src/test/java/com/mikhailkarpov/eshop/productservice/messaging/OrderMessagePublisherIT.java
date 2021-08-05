@@ -1,6 +1,6 @@
 package com.mikhailkarpov.eshop.productservice.messaging;
 
-import com.mikhailkarpov.eshop.productservice.config.AbstractIT;
+import com.mikhailkarpov.eshop.productservice.AbstractIT;
 import com.mikhailkarpov.eshop.productservice.config.OrderMessagingProperties;
 import com.mikhailkarpov.eshop.productservice.messaging.dto.OrderStatus;
 import com.mikhailkarpov.eshop.productservice.messaging.message.OrderUpdatedMessage;
