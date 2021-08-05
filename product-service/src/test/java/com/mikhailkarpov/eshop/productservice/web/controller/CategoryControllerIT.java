@@ -5,22 +5,18 @@ import com.mikhailkarpov.eshop.productservice.persistence.entity.Category;
 import com.mikhailkarpov.eshop.productservice.web.dto.CategoryRequest;
 import com.mikhailkarpov.eshop.productservice.web.dto.CategoryResponse;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 
 import java.net.URI;
-import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.springframework.http.HttpMethod.DELETE;
-import static org.springframework.http.HttpMethod.PUT;
+import static org.springframework.http.HttpMethod.*;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 class CategoryControllerIT extends AbstractIT {
@@ -28,11 +24,20 @@ class CategoryControllerIT extends AbstractIT {
     @Autowired
     private TestRestTemplate restTemplate;
 
+    private static final String CATEGORY_SCOPE = "category";
+
     @Test
     void givenCategories_whenGetCategories_thenParentCategoriesReturned() {
+        //given
+        String accessToken = obtainAccessToken();
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.set("Authorization", "Bearer " + accessToken);
+        HttpEntity<Object> httpEntity = new HttpEntity<>(httpHeaders);
+
         //when
         String url = "/categories";
-        ResponseEntity<CategoryResponse[]> response = restTemplate.getForEntity(url, CategoryResponse[].class);
+        ResponseEntity<CategoryResponse[]> response =
+                restTemplate.exchange(url, GET, httpEntity, CategoryResponse[].class);
 
         //then
         assertEquals(200, response.getStatusCodeValue());
@@ -42,9 +47,16 @@ class CategoryControllerIT extends AbstractIT {
 
     @Test
     void givenCategory_whenGetCategoryById_thenCategoryReturned() {
+        //given
+        String accessToken = obtainAccessToken();
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.set("Authorization", "Bearer " + accessToken);
+        HttpEntity<Object> httpEntity = new HttpEntity<>(httpHeaders);
+
         //when
         String url = "/categories/3";
-        ResponseEntity<CategoryResponse> response = restTemplate.getForEntity(url, CategoryResponse.class);
+        ResponseEntity<CategoryResponse> response =
+                restTemplate.exchange(url, GET, httpEntity, CategoryResponse.class);
         CategoryResponse category = response.getBody();
 
         //then
@@ -57,54 +69,52 @@ class CategoryControllerIT extends AbstractIT {
 
     @Test
     void givenNoCategory_whenGetCategoryById_thenNotFound() {
+        String accessToken = obtainAccessToken();
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.set("Authorization", "Bearer " + accessToken);
+        HttpEntity<Object> httpEntity = new HttpEntity<>(httpHeaders);
+
         //when
         String url = "/categories/999";
-        ResponseEntity<CategoryResponse> response = restTemplate.getForEntity(url, CategoryResponse.class);
+        ResponseEntity<CategoryResponse> response =
+                restTemplate.exchange(url, GET, httpEntity, CategoryResponse.class);
 
         //then
         assertEquals(404, response.getStatusCodeValue());
     }
 
     @Test
-    void givenCategoryRequest_whenPostCategories_thenCategoryCreatedAndFound() {
+    void givenCategoryRequestAndCategoryScope_whenPostCategories_thenCategoryCreatedAndFound() {
         //given
         CategoryRequest request = new CategoryRequest();
         request.setTitle("new category");
         request.setDescription("new category description");
 
+        //and given
+        String accessToken = obtainAccessToken(CATEGORY_SCOPE);
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.set("Authorization", "Bearer " + accessToken);
+        HttpEntity<CategoryRequest> httpEntity = new HttpEntity<>(request, httpHeaders);
+
         //when
         String url = "/categories";
-        ResponseEntity<CategoryResponse> response = restTemplate.postForEntity(url, request, CategoryResponse.class);
-        CategoryResponse category = response.getBody();
+        ResponseEntity<CategoryResponse> postResponse =
+                restTemplate.exchange(url, POST, httpEntity, CategoryResponse.class);
+        CategoryResponse category = postResponse.getBody();
 
         //then
-        assertEquals(201, response.getStatusCodeValue());
+        assertEquals(201, postResponse.getStatusCodeValue());
         assertNotNull(category);
         assertNotNull(category.getId());
         assertEquals("new category", category.getTitle());
         assertEquals("new category description", category.getDescription());
-        assertEquals(200,
-                restTemplate.getForEntity(response.getHeaders().getLocation(), Category.class).getStatusCodeValue());
-    }
 
-    @ParameterizedTest
-    @MethodSource("getInvalidCategoryRequest")
-    void givenInvalidCategoryRequest_whenPostCategories_thenBadRequest(CategoryRequest request) {
-        //when
-        String url = "/categories";
-        ResponseEntity<CategoryResponse> response = restTemplate.postForEntity(url, request, CategoryResponse.class);
+        //and when
+        URI location = postResponse.getHeaders().getLocation();
+        ResponseEntity<Category> getResponse = restTemplate.exchange(location, GET, httpEntity, Category.class);
 
         //then
-        assertEquals(400, response.getStatusCodeValue());
-    }
-
-    static Stream<Arguments> getInvalidCategoryRequest() {
-        return Stream.of(
-                Arguments.of(new CategoryRequest(null, "description")),
-                Arguments.of(new CategoryRequest("", "description")),
-                Arguments.of(new CategoryRequest("title", null)),
-                Arguments.of(new CategoryRequest("title", ""))
-        );
+        assertEquals(200, getResponse.getStatusCodeValue());
     }
 
     @Test
@@ -113,11 +123,17 @@ class CategoryControllerIT extends AbstractIT {
         CategoryRequest request = new CategoryRequest();
         request.setTitle("updated category");
         request.setDescription("updated category description");
-        HttpEntity<CategoryRequest> requestEntity = new HttpEntity<>(request);
+
+        //and given
+        String accessToken = obtainAccessToken(CATEGORY_SCOPE);
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.set("Authorization", "Bearer " + accessToken);
+        HttpEntity<CategoryRequest> httpEntity = new HttpEntity<>(request, httpHeaders);
 
         //when
         String url = "/categories/3";
-        ResponseEntity<CategoryResponse> response = restTemplate.exchange(url, PUT, requestEntity, CategoryResponse.class);
+        ResponseEntity<CategoryResponse> response =
+                restTemplate.exchange(url, PUT, httpEntity, CategoryResponse.class);
         CategoryResponse category = response.getBody();
 
         //then
@@ -134,35 +150,35 @@ class CategoryControllerIT extends AbstractIT {
         CategoryRequest request = new CategoryRequest();
         request.setTitle("updated category");
         request.setDescription("updated category description");
-        HttpEntity<CategoryRequest> requestEntity = new HttpEntity<>(request);
+
+        //and given
+        String accessToken = obtainAccessToken(CATEGORY_SCOPE);
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.set("Authorization", "Bearer " + accessToken);
+        HttpEntity<CategoryRequest> httpEntity = new HttpEntity<>(request, httpHeaders);
 
         //when
         String url = "/categories/999";
-        ResponseEntity<Object> response = restTemplate.exchange(url, PUT, requestEntity, Object.class);
+        ResponseEntity<Object> response = restTemplate.exchange(url, PUT, httpEntity, Object.class);
 
         //then
         assertEquals(404, response.getStatusCodeValue());
     }
 
-    @ParameterizedTest
-    @MethodSource("getInvalidCategoryRequest")
-    void givenInvalidCategoryRequest_whenPutCategories_thenBadRequest(CategoryRequest request) {
-        //when
-        String url = "/categories/3";
-        ResponseEntity<Object> response = restTemplate.exchange(url, PUT, null, Object.class);
-
-        //then
-        assertEquals(400, response.getStatusCodeValue());
-    }
-
     @Test
     void givenNotEmptyCategory_whenDeleteCategory_thenNotDeleted() {
+        //and given
+        String accessToken = obtainAccessToken(CATEGORY_SCOPE);
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.set("Authorization", "Bearer " + accessToken);
+        HttpEntity<Object> httpEntity = new HttpEntity<>(httpHeaders);
+
         //when
-        String url = "/categories/{id}";
+        String url = "/categories/3";
         ResponseEntity<Object> deleteResponse =
-                restTemplate.exchange(url, DELETE, null, Object.class, 3);
+                restTemplate.exchange(url, DELETE, httpEntity, Object.class);
         ResponseEntity<Object> getResponse =
-                restTemplate.getForEntity(url, Object.class, 3);
+                restTemplate.exchange(url, GET, httpEntity, Object.class);
 
         //then
         assertEquals(400, deleteResponse.getStatusCodeValue());
@@ -171,161 +187,24 @@ class CategoryControllerIT extends AbstractIT {
 
     @Test
     void givenNotEmptyCategory_whenDeleteCategoryForced_thenDeleted() {
+        //given
+        String accessToken = obtainAccessToken(CATEGORY_SCOPE);
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.set("Authorization", "Bearer " + accessToken);
+        HttpEntity<Object> httpEntity = new HttpEntity<>(httpHeaders);
+
         //when
         String deleteCategoryUrl = "/categories/3?forced=true";
-        ResponseEntity<Object> deleteResponse = restTemplate.exchange(deleteCategoryUrl, DELETE, null, Object.class);
+        ResponseEntity<Object> deleteResponse =
+                restTemplate.exchange(deleteCategoryUrl, DELETE, httpEntity, Object.class);
 
         //and when
-        String getCategoryUrl = "/categories/{id}";
-        ResponseEntity<CategoryResponse> getResponse = restTemplate.getForEntity(getCategoryUrl, CategoryResponse.class, 3);
+        String getCategoryUrl = "/categories/3";
+        ResponseEntity<CategoryResponse> getResponse =
+                restTemplate.exchange(getCategoryUrl, GET, httpEntity, CategoryResponse.class);
 
         //then
         assertEquals(204, deleteResponse.getStatusCodeValue());
         assertEquals(404, getResponse.getStatusCodeValue());
     }
-
-    @Test
-    void givenSubcategories_whenGetSubcategories_thenOk() {
-        //when
-        String url = "/categories/1/subcategories";
-        ResponseEntity<CategoryResponse[]> response = restTemplate.getForEntity(url, CategoryResponse[].class);
-        CategoryResponse[] subcategories = response.getBody();
-
-        //then
-        assertEquals(200, response.getStatusCodeValue());
-        assertEquals(2, subcategories.length);
-    }
-
-    @Test
-    void givenNoSubcategories_whenGetSubcategories_thenNotFound() {
-        //when
-        String url = "/categories/111/subcategories";
-        ResponseEntity<Object> response = restTemplate.getForEntity(url, Object.class);
-
-        //then
-        assertEquals(404, response.getStatusCodeValue());
-    }
-
-    @Test
-    void givenCategory_whenPostSubcategory_thenCreated() {
-        //given
-        CategoryRequest request = new CategoryRequest("title", "description");
-
-        //when
-        String url = "/categories/2/subcategories";
-        ResponseEntity<CategoryResponse> response = restTemplate.postForEntity(url, request, CategoryResponse.class);
-        URI location = response.getHeaders().getLocation();
-        CategoryResponse subcategory = response.getBody();
-
-        //then
-        assertEquals(201, response.getStatusCodeValue());
-        assertNotNull(location);
-        assertNotNull(subcategory.getId());
-        assertEquals("title", subcategory.getTitle());
-        assertEquals("description", subcategory.getDescription());
-        assertEquals(subcategory, restTemplate.getForEntity(location, CategoryResponse.class).getBody());
-    }
-
-    @Test
-    void givenNoCategory_whenPostSubcategory_thenNotFound() {
-        //given
-        CategoryRequest request = new CategoryRequest("title", "description");
-
-        //when
-        String url = "/categories/222/subcategories";
-        ResponseEntity<CategoryResponse> response = restTemplate.postForEntity(url, request, CategoryResponse.class);
-
-        //then
-        assertEquals(404, response.getStatusCodeValue());
-    }
-
-    @ParameterizedTest
-    @MethodSource("getInvalidCategoryRequest")
-    void givenInvalidRequest_whenPostSubcategories_thenBadRequest(CategoryRequest request) {
-        //when
-        String url = "/categories/1/subcategories";
-        ResponseEntity<CategoryResponse> response = restTemplate.postForEntity(url, request, CategoryResponse.class);
-
-        //then
-        assertEquals(400, response.getStatusCodeValue());
-    }
-
-    @Test
-    void givenProduct_whenPostProductToCategory_thenOk() {
-        //given
-        String code = "fuji";
-
-        //when
-        String url = "/categories/4/products?code={code}";
-        ResponseEntity<Object> response = restTemplate.postForEntity(url, null, Object.class, code);
-
-        //then
-        assertEquals(200, response.getStatusCodeValue());
-    }
-
-    @Test
-    void givenNoProduct_whenPostProductToCategory_thenNotFound() {
-        //given
-        String code = "not-found";
-
-        //when
-        String url = "/categories/4/products?code={code}";
-        ResponseEntity<Object> response = restTemplate.postForEntity(url, null, Object.class, code);
-
-        //then
-        assertEquals(404, response.getStatusCodeValue());
-    }
-
-    @Test
-    void givenNoCategory_whenPostProductToCategory_thenNotFound() {
-        //given
-        String code = "fuji";
-
-        //when
-        String url = "/categories/555/products?code={code}";
-        ResponseEntity<Object> response = restTemplate.postForEntity(url, null, Object.class, code);
-
-        //then
-        assertEquals(404, response.getStatusCodeValue());
-    }
-
-    @Test
-    void givenProduct_whenDeleteProductFromCategory_thenOk() {
-        //given
-        String code = "macbook";
-
-        //when
-        String url = "/categories/3/products?code={code}";
-        ResponseEntity<Object> response = restTemplate.exchange(url, DELETE, null, Object.class, code);
-
-        //then
-        assertEquals(200, response.getStatusCodeValue());
-    }
-
-    @Test
-    void givenNoProduct_whenDeleteProductFromCategory_thenNotFound() {
-        //given
-        String code = "not-found";
-
-        //when
-        String url = "/categories/3/products?code={code}";
-        ResponseEntity<Object> response = restTemplate.exchange(url, DELETE, null, Object.class, code);
-
-        //then
-        assertEquals(404, response.getStatusCodeValue());
-    }
-
-    @Test
-    void givenNoCategory_whenDeleteProductToCategory_thenNotFound() {
-        //given
-        String code = "macbook";
-
-        //when
-        String url = "/categories/555/products?code={code}";
-        ResponseEntity<Object> response = restTemplate.exchange(url, DELETE, null, Object.class, code);
-
-        //then
-        assertEquals(404, response.getStatusCodeValue());
-    }
-
 }

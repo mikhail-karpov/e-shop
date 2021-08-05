@@ -7,4 +7,4 @@ COPY ./target/product-service.jar .
 
 CMD ["java", "-jar", "/app/product-service.jar"]
 
-EXPOSE 8081
+EXPOSE 8080

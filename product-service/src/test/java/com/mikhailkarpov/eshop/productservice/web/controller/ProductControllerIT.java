@@ -10,6 +10,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 
 import java.net.URI;
@@ -24,22 +25,28 @@ class ProductControllerIT extends AbstractIT {
     @Autowired
     private TestRestTemplate restTemplate;
 
-    private final ParameterizedTypeReference<PagedResult<Product>> pagedResultReference =
+    private static final String PRODUCT_SCOPE = "product";
+
+    private final ParameterizedTypeReference<PagedResult<Product>> typeRef =
             new ParameterizedTypeReference<PagedResult<Product>>() {
             };
 
     @Test
     void givenProducts_whenFindProductsByTitle_thenFound() {
         //given
-        String url = "/products?title=macbook";
+        String accessToken = obtainAccessToken();
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.set("Authorization", "Bearer " + accessToken);
+        HttpEntity<Object> httpEntity = new HttpEntity<>(httpHeaders);
 
         //when
-        ResponseEntity<PagedResult<Product>> response =
-                restTemplate.exchange(url, GET, null, pagedResultReference);
+        String url = "/products?title=macbook";
+        ResponseEntity<PagedResult<Product>> response = restTemplate.exchange(url, GET, httpEntity, typeRef);
         PagedResult<Product> pagedResult = response.getBody();
 
         //then
         assertEquals(200, response.getStatusCodeValue());
+        assertNotNull(pagedResult);
         assertEquals(0, pagedResult.getPage());
         assertEquals(1, pagedResult.getTotalPages());
         assertEquals(1L, pagedResult.getTotalResults());
@@ -49,15 +56,19 @@ class ProductControllerIT extends AbstractIT {
     @Test
     void givenProducts_whenFindProductsByCategory_thenFound() {
         //given
-        String url = "/products?category=3";
+        String accessToken = obtainAccessToken();
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.set("Authorization", "Bearer " + accessToken);
+        HttpEntity<Object> httpEntity = new HttpEntity<>(httpHeaders);
 
         //when
-        ResponseEntity<PagedResult<Product>> response =
-                restTemplate.exchange(url, GET, null, pagedResultReference);
+        String url = "/products?category=3";
+        ResponseEntity<PagedResult<Product>> response = restTemplate.exchange(url, GET, httpEntity, typeRef);
         PagedResult<Product> pagedResult = response.getBody();
 
         //then
         assertEquals(200, response.getStatusCodeValue());
+        assertNotNull(pagedResult);
         assertEquals(0, pagedResult.getPage());
         assertEquals(1, pagedResult.getTotalPages());
         assertEquals(2L, pagedResult.getTotalResults());
@@ -67,15 +78,19 @@ class ProductControllerIT extends AbstractIT {
     @Test
     void givenProducts_whenFindAll_thenFound() {
         //given
-        String url = "/products?page=1&size=2";
+        String accessToken = obtainAccessToken();
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.set("Authorization", "Bearer " + accessToken);
+        HttpEntity<Object> httpEntity = new HttpEntity<>(httpHeaders);
 
         //when
-        ResponseEntity<PagedResult<Product>> response =
-                restTemplate.exchange(url, GET, null, pagedResultReference);
+        String url = "/products?page=1&size=2";
+        ResponseEntity<PagedResult<Product>> response = restTemplate.exchange(url, GET, httpEntity, typeRef);
         PagedResult<Product> pagedResult = response.getBody();
 
         //then
         assertEquals(200, response.getStatusCodeValue());
+        assertNotNull(pagedResult);
         assertEquals(1, pagedResult.getPage());
         assertEquals(2, pagedResult.getTotalPages());
         assertEquals(4L, pagedResult.getTotalResults());
@@ -85,10 +100,14 @@ class ProductControllerIT extends AbstractIT {
     @Test
     void givenProduct_whenGetByCode_thenOk() {
         //given
-        String url = "/products/macbook";
+        String accessToken = obtainAccessToken();
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.set("Authorization", "Bearer " + accessToken);
+        HttpEntity<Object> httpEntity = new HttpEntity<>(httpHeaders);
 
         //when
-        ResponseEntity<Product> response = restTemplate.getForEntity(url, Product.class);
+        String url = "/products/macbook";
+        ResponseEntity<Product> response = restTemplate.exchange(url, GET, httpEntity, Product.class);
 
         //then
         assertEquals(200, response.getStatusCodeValue());
@@ -98,10 +117,14 @@ class ProductControllerIT extends AbstractIT {
     @Test
     void givenNoProduct_whenGetByCode_thenNotFound() {
         //given
-        String url = "/products/not-found";
+        String accessToken = obtainAccessToken();
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.set("Authorization", "Bearer " + accessToken);
+        HttpEntity<Object> httpEntity = new HttpEntity<>(httpHeaders);
 
         //when
-        ResponseEntity<Product> response = restTemplate.getForEntity(url, Product.class);
+        String url = "/products/not-found";
+        ResponseEntity<Product> response = restTemplate.exchange(url, GET, httpEntity, Product.class);
 
         //then
         assertEquals(404, response.getStatusCodeValue());
@@ -110,10 +133,15 @@ class ProductControllerIT extends AbstractIT {
     @Test
     void givenValidRequest_whenPostProduct_thenCreated() {
         //given
+        String accessToken = obtainAccessToken(PRODUCT_SCOPE);
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.set("Authorization", "Bearer " + accessToken);
         ProductRequest request = new ProductRequest("abc", "title", "desc", 100, 5);
+        HttpEntity<Object> httpEntity = new HttpEntity<>(request, httpHeaders);
 
         //when
-        ResponseEntity<Product> response = restTemplate.postForEntity("/products", request, Product.class);
+        String url = "/products";
+        ResponseEntity<Product> response = restTemplate.exchange(url, POST, httpEntity, Product.class);
         URI location = response.getHeaders().getLocation();
         Product product = response.getBody();
 
@@ -128,7 +156,7 @@ class ProductControllerIT extends AbstractIT {
         assertEquals(5, product.getQuantity());
 
         //and when
-        ResponseEntity<Product> getResponse = restTemplate.getForEntity(location, Product.class);
+        ResponseEntity<Product> getResponse = restTemplate.exchange(location, GET, httpEntity, Product.class);
 
         //then
         assertEquals(200, getResponse.getStatusCodeValue());
@@ -138,11 +166,14 @@ class ProductControllerIT extends AbstractIT {
     @Test
     void givenValidRequest_whenPutProduct_thenUpdated() {
         //given
+        String accessToken = obtainAccessToken(PRODUCT_SCOPE);
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.set("Authorization", "Bearer " + accessToken);
         ProductRequest request = new ProductRequest("macbook", "title", "desc", 100, 5);
-        HttpEntity<ProductRequest> httpEntity = new HttpEntity<>(request);
-        String url = "/products/macbook";
+        HttpEntity<Object> httpEntity = new HttpEntity<>(request, httpHeaders);
 
         //when
+        String url = "/products/macbook";
         ResponseEntity<Product> response = restTemplate.exchange(url, PUT, httpEntity, Product.class);
         Product product = response.getBody();
 
@@ -156,7 +187,7 @@ class ProductControllerIT extends AbstractIT {
         assertEquals(5, product.getQuantity());
 
         //and when
-        ResponseEntity<Product> getResponse = restTemplate.getForEntity(url, Product.class);
+        ResponseEntity<Product> getResponse = restTemplate.exchange(url, GET, httpEntity, Product.class);
 
         //then
         assertEquals(200, getResponse.getStatusCodeValue());
@@ -166,11 +197,14 @@ class ProductControllerIT extends AbstractIT {
     @Test
     void givenNoProduct_whenPutProduct_thenNotFound() {
         //given
+        String accessToken = obtainAccessToken(PRODUCT_SCOPE);
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.set("Authorization", "Bearer " + accessToken);
         ProductRequest request = new ProductRequest("macbook", "title", "desc", 100, 5);
-        HttpEntity<ProductRequest> httpEntity = new HttpEntity<>(request);
-        String url = "/products/not-found";
+        HttpEntity<Object> httpEntity = new HttpEntity<>(request, httpHeaders);
 
         //when
+        String url = "/products/not-found";
         ResponseEntity<Product> response = restTemplate.exchange(url, PUT, httpEntity, Product.class);
 
         //then
@@ -180,23 +214,31 @@ class ProductControllerIT extends AbstractIT {
     @Test
     void givenProduct_whenDeleteProduct_thenNoContent() {
         //given
-        String url = "/products/macbook";
+        String accessToken = obtainAccessToken(PRODUCT_SCOPE);
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.set("Authorization", "Bearer " + accessToken);
+        HttpEntity<Object> httpEntity = new HttpEntity<>(httpHeaders);
 
         //when
-        ResponseEntity<Object> response = restTemplate.exchange(url, DELETE, null, Object.class);
+        String url = "/products/macbook";
+        ResponseEntity<Object> response = restTemplate.exchange(url, DELETE, httpEntity, Object.class);
 
         //then
         assertEquals(204, response.getStatusCodeValue());
-        assertEquals(404, restTemplate.getForEntity(url, Product.class).getStatusCodeValue());
+        assertEquals(404, restTemplate.exchange(url, GET, httpEntity, Product.class).getStatusCodeValue());
     }
 
     @Test
     void givenNoProduct_whenDeleteProduct_thenNotFound() {
         //given
-        String url = "/products/not-found";
+        String accessToken = obtainAccessToken(PRODUCT_SCOPE);
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.set("Authorization", "Bearer " + accessToken);
+        HttpEntity<Object> httpEntity = new HttpEntity<>(httpHeaders);
 
         //when
-        ResponseEntity<Object> deleteResponse = restTemplate.exchange(url, DELETE, null, Object.class);
+        String url = "/products/not-found";
+        ResponseEntity<Object> deleteResponse = restTemplate.exchange(url, DELETE, httpEntity, Object.class);
 
         //then
         assertEquals(404, deleteResponse.getStatusCodeValue());

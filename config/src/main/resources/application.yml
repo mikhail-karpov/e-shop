@@ -13,7 +13,7 @@ spring:
 
   security:
     user:
-      name: config
+      name: ${CONFIG_USER}
       password: ${CONFIG_PASSWORD}
 
 server:

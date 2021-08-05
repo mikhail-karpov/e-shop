@@ -17,7 +17,6 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -35,7 +34,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional
-    public UUID createOrder(String customerId, CreateOrderRequest request) {
+    public UUID createOrder(String customerId, CreateOrderRequestBody request) {
 
         List<OrderItemDTO> items = request.getItems();
 
@@ -43,7 +42,8 @@ public class OrderServiceImpl implements OrderService {
         order.setCustomerId(customerId);
         order.setShippingAddress(modelMapper.map(request.getShippingAddress(), Address.class));
         order.setStatus(OrderStatus.ACCEPTED);
-        items.stream().forEach(item -> {
+
+        items.forEach(item -> {
             OrderItem orderItem = modelMapper.map(item, OrderItem.class);
             order.addItem(orderItem);
         });
@@ -58,10 +58,10 @@ public class OrderServiceImpl implements OrderService {
     @Transactional(readOnly = true)
     public PagedResult<OrderDTO> searchOrders(SearchOrdersRequest request, Pageable pageable) {
 
-        Specification<Order> spec = byCustomerId(request.getCustomerId()).and(byStatus(request.getStatus()));
+        Specification<Order> spec = byCustomerId(request.getCustomerId())
+                .and(byStatus(request.getStatus()));
 
         Page<OrderDTO> orderDTOPage = orderRepository.findAll(spec, pageable).map(this::mapFromEntity);
-
         return new PagedResult<>(orderDTOPage);
     }
 
@@ -75,19 +75,13 @@ public class OrderServiceImpl implements OrderService {
 
     @Override
     @Transactional(readOnly = true)
-    public OrderWithItemsDTO findOrderById(UUID orderId) {
+    public OrderDTO findOrderById(UUID orderId) {
 
-        Order order = orderRepository.findById(orderId).orElseThrow(() -> {
-            String message = String.format("Order with id=\"%s\" not found", orderId);
-            return new OrderNotFoundException(message);
-        });
-
-        List<OrderItemDTO> items = order.getItems().stream()
-                .map(OrderItemDTO::new)
-                .sorted(Comparator.comparing(OrderItemDTO::getCode))
-                .collect(Collectors.toList());
-        AddressDTO address = new AddressDTO(order.getShippingAddress());
-        return new OrderWithItemsDTO(orderId, order.getCustomerId(), order.getStatus(), address, items);
+        return orderRepository.findById(orderId).map(this::mapFromEntity)
+                .orElseThrow(() -> {
+                    String message = String.format("Order with id=\"%s\" not found", orderId);
+                    return new OrderNotFoundException(message);
+                });
     }
 
     @Override
@@ -103,13 +97,17 @@ public class OrderServiceImpl implements OrderService {
 
     private OrderDTO mapFromEntity(Order entity) {
 
-        OrderDTO dto = new OrderDTO();
+        List<OrderItemDTO> itemDTOList = entity.getItems()
+                .stream()
+                .map(item -> new OrderItemDTO(item.getCode(), item.getQuantity()))
+                .collect(Collectors.toList());
 
-        dto.setId(entity.getId());
-        dto.setCustomerId(entity.getCustomerId());
-        dto.setStatus(entity.getStatus());
-        dto.setShippingAddress(new AddressDTO(entity.getShippingAddress()));
-
-        return dto;
+        return OrderDTO.builder()
+                .id(entity.getId())
+                .customerId(entity.getCustomerId())
+                .shippingAddress(modelMapper.map(entity.getShippingAddress(), AddressDTO.class))
+                .status(entity.getStatus())
+                .items(itemDTOList)
+                .build();
     }
 }

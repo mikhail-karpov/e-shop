@@ -9,7 +9,7 @@ spring:
     config:
       uri: ${CONFIG_URI:http://localhost:8888}
       fail-fast: true
-      username: config
+      username: ${CONFIG_USER}
       password: ${CONFIG_PASSWORD}
 
 

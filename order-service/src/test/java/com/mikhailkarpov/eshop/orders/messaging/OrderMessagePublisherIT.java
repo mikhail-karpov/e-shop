@@ -1,6 +1,6 @@
 package com.mikhailkarpov.eshop.orders.messaging;
 
-import com.mikhailkarpov.eshop.orders.BaseIT;
+import com.mikhailkarpov.eshop.orders.AbstractIT;
 import com.mikhailkarpov.eshop.orders.config.OrderMessagingProperties;
 import com.mikhailkarpov.eshop.orders.dto.OrderItemDTO;
 import com.mikhailkarpov.eshop.orders.messaging.events.OrderCreatedMessage;
@@ -16,13 +16,13 @@ import java.util.List;
 import java.util.UUID;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
-class OrderMessagePublisherIT extends BaseIT {
+class OrderMessagePublisherIT extends AbstractIT {
 
     @Autowired
     private RabbitTemplate rabbitTemplate;
 
     @Autowired
-    private OrderMessagePublisher messageSender;
+    private OrderMessagePublisher orderMessagePublisher;
 
     @Autowired
     private OrderMessagingProperties messagingProperties;
@@ -35,12 +35,13 @@ class OrderMessagePublisherIT extends BaseIT {
         OrderItemDTO xyzItem = new OrderItemDTO("xyz", 5);
         List<OrderItemDTO> items = Arrays.asList(abcItem, xyzItem);
         OrderCreatedMessage message = new OrderCreatedMessage(orderId, items);
+
         ParameterizedTypeReference<OrderCreatedMessage> reference =
                 new ParameterizedTypeReference<OrderCreatedMessage>() {
                 };
 
         //when
-        messageSender.send(message);
+        orderMessagePublisher.send(message);
         OrderCreatedMessage actualMessage =
                 rabbitTemplate.receiveAndConvert(messagingProperties.getCreatedQueue(), reference);
 

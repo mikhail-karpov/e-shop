@@ -1,18 +1,24 @@
 package com.mikhailkarpov.eshop.orders.controllers;
 
-import com.mikhailkarpov.eshop.orders.dto.*;
+import com.mikhailkarpov.eshop.orders.dto.CreateOrderRequestBody;
+import com.mikhailkarpov.eshop.orders.dto.OrderDTO;
+import com.mikhailkarpov.eshop.orders.dto.PagedResult;
+import com.mikhailkarpov.eshop.orders.dto.SearchOrdersRequest;
 import com.mikhailkarpov.eshop.orders.persistence.entities.OrderStatus;
 import com.mikhailkarpov.eshop.orders.services.OrderService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PostAuthorize;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import javax.validation.Valid;
 import java.net.URI;
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -24,6 +30,7 @@ public class OrderController {
     private final OrderService orderService;
 
     @GetMapping("/orders")
+    @PreAuthorize("hasRole('ADMIN')")
     public PagedResult<OrderDTO> findAllOrders(@RequestParam("customer") Optional<String> customerId,
                                                @RequestParam("status") Optional<String> status,
                                                Pageable pageable) {
@@ -37,18 +44,22 @@ public class OrderController {
     }
 
     @PostMapping("/orders")
-    public ResponseEntity<Object> createOrder(@Valid @RequestBody CreateOrderRequest request,
-                                              UriComponentsBuilder uriComponentsBuilder) {
+    @PreAuthorize("#jwt != null && #jwt.subject != null")
+    public ResponseEntity<Object> createOrder(@Valid @RequestBody CreateOrderRequestBody requestBody,
+                                              UriComponentsBuilder uriComponentsBuilder,
+                                              @AuthenticationPrincipal Jwt jwt) {
 
-        String customerId = UUID.randomUUID().toString(); // todo extract from JWT
-        UUID orderId = orderService.createOrder(customerId, request);
+        String customerId = jwt.getSubject();
+        UUID orderId = orderService.createOrder(customerId, requestBody);
 
         URI location = uriComponentsBuilder.path("/orders/{id}").build(orderId.toString());
         return ResponseEntity.created(location).build();
     }
 
     @GetMapping("/orders/{id}")
-    public OrderWithItemsDTO findOrderById(@PathVariable("id") UUID id) {
+    @PostAuthorize("hasRole('ADMIN') or (#jwt != null && returnObject.customerId == #jwt.subject)")
+    public OrderDTO findOrderById(@PathVariable("id") UUID id,
+                                  @AuthenticationPrincipal Jwt jwt) {
 
         return orderService.findOrderById(id);
     }

@@ -7,4 +7,4 @@ COPY ./target/order-service.jar .
 
 CMD ["java", "-jar", "/app/order-service.jar"]
 
-EXPOSE 8083
+EXPOSE 8080

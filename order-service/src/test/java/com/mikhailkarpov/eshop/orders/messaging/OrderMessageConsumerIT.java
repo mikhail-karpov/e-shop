@@ -1,12 +1,13 @@
 package com.mikhailkarpov.eshop.orders.messaging;
 
-import com.mikhailkarpov.eshop.orders.BaseIT;
+import com.mikhailkarpov.eshop.orders.AbstractIT;
 import com.mikhailkarpov.eshop.orders.config.OrderMessagingProperties;
 import com.mikhailkarpov.eshop.orders.persistence.entities.Order;
 import com.mikhailkarpov.eshop.orders.persistence.entities.OrderItem;
 import com.mikhailkarpov.eshop.orders.persistence.entities.OrderStatus;
 import com.mikhailkarpov.eshop.orders.persistence.repositories.OrderRepository;
 import org.awaitility.Awaitility;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.amqp.core.MessageBuilder;
@@ -26,7 +27,7 @@ import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import static org.hamcrest.Matchers.is;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.NONE)
-class OrderMessageConsumerIT extends BaseIT {
+class OrderMessageConsumerIT extends AbstractIT {
 
     @Autowired
     private RabbitTemplate rabbitTemplate;
@@ -49,6 +50,11 @@ class OrderMessageConsumerIT extends BaseIT {
         items.add(xyzItem);
 
         order = orderRepository.save(new Order("customerId", getValidAddress(), ACCEPTED, items));
+    }
+
+    @AfterEach
+    void cleanUp() {
+        orderRepository.deleteAll();
     }
 
     @Test

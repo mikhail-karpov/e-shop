@@ -6,16 +6,19 @@ services:
     image: dadarek/wait-for-dependencies
     depends_on:
       - config
+      - keycloak
       - product-service-db
       - order-service-db
       - rabbitmq
       - redis
-    command: config:8888 product-service-db:5432 order-service-db:5432 rabbitmq:5672 redis:6379
+
+    command: config:8888 product-service-db:5432 order-service-db:5432 rabbitmq:5672 redis:6379 keycloak:8080
 
   config:
     build: ./config
     container_name: config
     environment:
+      - CONFIG_USER=${CONFIG_USER}
       - CONFIG_PASSWORD=${CONFIG_PASSWORD}
     ports:
     - 8888:8888
@@ -27,6 +30,7 @@ services:
       - config
     environment:
       - CONFIG_URI=http://config:8888
+      - CONFIG_USER=${CONFIG_USER}
       - CONFIG_PASSWORD=${CONFIG_PASSWORD}
       - SPRING_PROFILES_ACTIVE=dev
     ports:
@@ -39,14 +43,24 @@ services:
       - config
     environment:
       - CONFIG_URI=http://config:8888
+      - CONFIG_USER=${CONFIG_USER}
       - CONFIG_PASSWORD=${CONFIG_PASSWORD}
       - SPRING_PROFILES_ACTIVE=dev
+    ports:
+      - 9000:8080
+
+  keycloak:
+    image: jboss/keycloak
+    container_name: keycloak
+    environment:
+      - KEYCLOAK_USER={KEYCLOAK_USER}
+      - KEYCLOAK_PASSWORD={KEYCLOAK_PASSWORD}
     ports:
       - 8080:8080
 
   product-service:
     build: ./product-service
-    container_name: product-service-db
+    container_name: product-service
     depends_on:
       - config
       - product-service-db
@@ -54,15 +68,17 @@ services:
       - redis
     environment:
       - CONFIG_URI=http://config:8888
+      - CONFIG_USER=${CONFIG_USER}
       - CONFIG_PASSWORD=${CONFIG_PASSWORD}
       - SPRING_PROFILES_ACTIVE=dev
       - PRODUCT_DB_USER=${PRODUCT_DB_USER}
       - PRODUCT_DB_PASSWORD=${PRODUCT_DB_PASSWORD}
       - RABBITMQ_USER=${RABBITMQ_USER}
       - RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
+      - REDIS_PASSWORD=${REDIS_PASSWORD}
 
   product-service-db:
-    image: "postgres:12"
+    image: "postgres"
     container_name: product-serivce-db
     environment:
       - POSTGRES_DB=product_service
@@ -70,16 +86,6 @@ services:
       - POSTGRES_PASSWORD=${PRODUCT_DB_PASSWORD}
     ports:
     - 5432:5432
-
-#  shopping-cart-service:
-#    build: ./shopping-cart-service
-#    container_name: shopping-cart-service
-#    depends_on:
-#      - config
-#    environment:
-#      - CONFIG_URI=http://config:8888
-#      - CONFIG_PASSWORD=${CONFIG_PASSWORD}
-#      - SPRING_PROFILES_ACTIVE=dev
 
   order-service:
     build: ./order-service
@@ -90,6 +96,7 @@ services:
       - order-service-db
     environment:
       - CONFIG_URI=http://config:8888
+      - CONFIG_USER=${CONFIG_USER}
       - CONFIG_PASSWORD=${CONFIG_PASSWORD}
       - SPRING_PROFILES_ACTIVE=dev
       - ORDER_DB_USER=${ORDER_DB_USER}
@@ -98,7 +105,7 @@ services:
       - RABBITMQ_PASSWORD=${RABBITMQ_PASSWORD}
 
   order-service-db:
-    image: "postgres:12"
+    image: "postgres"
     container_name: order-service-db
     environment:
       - POSTGRES_DB=order_service
@@ -118,7 +125,8 @@ services:
     - 15672:15672
 
   redis:
-    image: redis:alpine
+    image: redis
     container_name: redis
+    command: redis-server --requirepass ${REDIS_PASSWORD}
     ports:
     - 6379:6379
